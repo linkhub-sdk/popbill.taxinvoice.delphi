@@ -232,7 +232,7 @@ type
                 function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean) : String;
                 
         public
-
+                constructor Create(PartnerID : String; SecretKey : String);
                 //ÆËºô ¼¼±Ý°è»ê¼­ ¿¬°á url.
                 function GetTaxinvoiceURL(CorpNum : String; UserID : String; TOGO : String) : String;
 
@@ -316,6 +316,11 @@ type
 
 
 implementation
+constructor TTaxinvoiceService.Create(PartnerID : String; SecretKey : String);
+begin
+       inherited Create(PartnerID,SecretKey);
+       AddScope('110');
+end;
 
 function TTaxinvoiceService.GetTaxinvoiceURL(CorpNum : String; UserID : String; TOGO : String) : String;
 var
