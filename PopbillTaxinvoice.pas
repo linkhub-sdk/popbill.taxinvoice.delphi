@@ -368,85 +368,85 @@ begin
         if writeSpecification then
         requestJson := requestJson + '"writeSpecification":true,';
 
-        requestJson := requestJson + '"WriteDate":"'+ Taxinvoice.WriteDate +'",';
+        requestJson := requestJson + '"WriteDate":"'+ EscapeString(Taxinvoice.WriteDate) +'",';
 
-        requestJson := requestJson + '"ChargeDirection":"'+ Taxinvoice.ChargeDirection +'",';
-        requestJson := requestJson + '"IssueType":"'+ Taxinvoice.IssueType +'",';
-        requestJson := requestJson + '"IssueTiming":"'+ Taxinvoice.IssueTiming +'",';
-        requestJson := requestJson + '"TaxType":"'+ Taxinvoice.TaxType +'",';
-        requestJson := requestJson + '"InvoicerCorpNum":"'+ Taxinvoice.InvoicerCorpNum +'",';
-        requestJson := requestJson + '"InvoicerMgtKey":"'+ Taxinvoice.InvoicerMgtKey +'",';
-        requestJson := requestJson + '"InvoicerTaxRegID":"'+ Taxinvoice.InvoicerTaxRegID +'",';
-        requestJson := requestJson + '"InvoicerCorpName":"'+ Taxinvoice.InvoicerCorpName +'",';
-        requestJson := requestJson + '"InvoicerCEOName":"'+ Taxinvoice.InvoicerCEOName +'",';
-        requestJson := requestJson + '"InvoicerAddr":"'+ Taxinvoice.InvoicerAddr +'",';
-        requestJson := requestJson + '"InvoicerBizClass":"'+ Taxinvoice.InvoicerBizClass +'",';
-        requestJson := requestJson + '"InvoicerBizType":"'+ Taxinvoice.InvoicerBizType +'",';
-        requestJson := requestJson + '"InvoicerContactName":"'+ Taxinvoice.InvoicerContactName +'",';
-        requestJson := requestJson + '"InvoicerDeptName":"'+ Taxinvoice.InvoicerDeptName +'",';
-        requestJson := requestJson + '"InvoicerTEL":"'+ Taxinvoice.InvoicerTEL +'",';
-        requestJson := requestJson + '"InvoicerHP":"'+ Taxinvoice.InvoicerHP +'",';
-        requestJson := requestJson + '"InvoicerEmail":"'+ Taxinvoice.InvoicerEmail +'",';
+        requestJson := requestJson + '"ChargeDirection":"'+ EscapeString(Taxinvoice.ChargeDirection) +'",';
+        requestJson := requestJson + '"IssueType":"'+ EscapeString(Taxinvoice.IssueType) +'",';
+        requestJson := requestJson + '"IssueTiming":"'+ EscapeString(Taxinvoice.IssueTiming) +'",';
+        requestJson := requestJson + '"TaxType":"'+ EscapeString(Taxinvoice.TaxType) +'",';
+        requestJson := requestJson + '"InvoicerCorpNum":"'+ EscapeString(Taxinvoice.InvoicerCorpNum) +'",';
+        requestJson := requestJson + '"InvoicerMgtKey":"'+ EscapeString(Taxinvoice.InvoicerMgtKey) +'",';
+        requestJson := requestJson + '"InvoicerTaxRegID":"'+ EscapeString(Taxinvoice.InvoicerTaxRegID) +'",';
+        requestJson := requestJson + '"InvoicerCorpName":"'+ EscapeString(Taxinvoice.InvoicerCorpName) +'",';
+        requestJson := requestJson + '"InvoicerCEOName":"'+ EscapeString(Taxinvoice.InvoicerCEOName) +'",';
+        requestJson := requestJson + '"InvoicerAddr":"'+ EscapeString(Taxinvoice.InvoicerAddr) +'",';
+        requestJson := requestJson + '"InvoicerBizClass":"'+ EscapeString(Taxinvoice.InvoicerBizClass) +'",';
+        requestJson := requestJson + '"InvoicerBizType":"'+ EscapeString(Taxinvoice.InvoicerBizType) +'",';
+        requestJson := requestJson + '"InvoicerContactName":"'+ EscapeString(Taxinvoice.InvoicerContactName) +'",';
+        requestJson := requestJson + '"InvoicerDeptName":"'+ EscapeString(Taxinvoice.InvoicerDeptName) +'",';
+        requestJson := requestJson + '"InvoicerTEL":"'+ EscapeString(Taxinvoice.InvoicerTEL) +'",';
+        requestJson := requestJson + '"InvoicerHP":"'+ EscapeString(Taxinvoice.InvoicerHP) +'",';
+        requestJson := requestJson + '"InvoicerEmail":"'+ EscapeString(Taxinvoice.InvoicerEmail) +'",';
 
         if Taxinvoice.InvoicerSMSSendYN then
         requestJson := requestJson + '"InvoicerSMSSendYN":true,';
 
-        requestJson := requestJson + '"InvoiceeCorpNum":"'+ Taxinvoice.InvoiceeCorpNum +'",';
-        requestJson := requestJson + '"InvoiceeType":"'+ Taxinvoice.InvoiceeType +'",';
-        requestJson := requestJson + '"InvoiceeMgtKey":"'+ Taxinvoice.InvoiceeMgtKey +'",';
-        requestJson := requestJson + '"InvoiceeTaxRegID":"'+ Taxinvoice.InvoiceeTaxRegID +'",';
-        requestJson := requestJson + '"InvoiceeCorpName":"'+ Taxinvoice.InvoiceeCorpName +'",';
-        requestJson := requestJson + '"InvoiceeCEOName":"'+ Taxinvoice.InvoiceeCEOName +'",';
-        requestJson := requestJson + '"InvoiceeAddr":"'+ Taxinvoice.InvoiceeAddr +'",';
-        requestJson := requestJson + '"InvoiceeBizType":"'+ Taxinvoice.InvoiceeBizType +'",';
-        requestJson := requestJson + '"InvoiceeBizClass":"'+ Taxinvoice.InvoiceeBizClass +'",';
-        requestJson := requestJson + '"InvoiceeContactName1":"'+ Taxinvoice.InvoiceeContactName1 +'",';
-        requestJson := requestJson + '"InvoiceeDeptName1":"'+ Taxinvoice.InvoiceeDeptName1 +'",';
-        requestJson := requestJson + '"InvoiceeTEL1":"'+ Taxinvoice.InvoiceeTEL1 +'",';
-        requestJson := requestJson + '"InvoiceeHP1":"'+ Taxinvoice.InvoiceeHP1 +'",';
-        requestJson := requestJson + '"InvoiceeEmail1":"'+ Taxinvoice.InvoiceeEmail1 +'",';
-        requestJson := requestJson + '"InvoiceeContactName2":"'+ Taxinvoice.InvoiceeContactName2 +'",';
-        requestJson := requestJson + '"InvoiceeDeptName2":"'+ Taxinvoice.InvoiceeDeptName2 +'",';
-        requestJson := requestJson + '"InvoiceeTEL2":"'+ Taxinvoice.InvoiceeTEL2 +'",';
-        requestJson := requestJson + '"InvoiceeEmail2":"'+ Taxinvoice.InvoiceeEmail2 +'",';
+        requestJson := requestJson + '"InvoiceeCorpNum":"'+ EscapeString(Taxinvoice.InvoiceeCorpNum) +'",';
+        requestJson := requestJson + '"InvoiceeType":"'+ EscapeString(Taxinvoice.InvoiceeType) +'",';
+        requestJson := requestJson + '"InvoiceeMgtKey":"'+ EscapeString(Taxinvoice.InvoiceeMgtKey) +'",';
+        requestJson := requestJson + '"InvoiceeTaxRegID":"'+ EscapeString(Taxinvoice.InvoiceeTaxRegID) +'",';
+        requestJson := requestJson + '"InvoiceeCorpName":"'+ EscapeString(Taxinvoice.InvoiceeCorpName) +'",';
+        requestJson := requestJson + '"InvoiceeCEOName":"'+ EscapeString(Taxinvoice.InvoiceeCEOName) +'",';
+        requestJson := requestJson + '"InvoiceeAddr":"'+ EscapeString(Taxinvoice.InvoiceeAddr) +'",';
+        requestJson := requestJson + '"InvoiceeBizType":"'+ EscapeString(Taxinvoice.InvoiceeBizType) +'",';
+        requestJson := requestJson + '"InvoiceeBizClass":"'+ EscapeString(Taxinvoice.InvoiceeBizClass) +'",';
+        requestJson := requestJson + '"InvoiceeContactName1":"'+ EscapeString(Taxinvoice.InvoiceeContactName1) +'",';
+        requestJson := requestJson + '"InvoiceeDeptName1":"'+ EscapeString(Taxinvoice.InvoiceeDeptName1) +'",';
+        requestJson := requestJson + '"InvoiceeTEL1":"'+ EscapeString(Taxinvoice.InvoiceeTEL1) +'",';
+        requestJson := requestJson + '"InvoiceeHP1":"'+ EscapeString(Taxinvoice.InvoiceeHP1) +'",';
+        requestJson := requestJson + '"InvoiceeEmail1":"'+ EscapeString(Taxinvoice.InvoiceeEmail1) +'",';
+        requestJson := requestJson + '"InvoiceeContactName2":"'+ EscapeString(Taxinvoice.InvoiceeContactName2) +'",';
+        requestJson := requestJson + '"InvoiceeDeptName2":"'+ EscapeString(Taxinvoice.InvoiceeDeptName2) +'",';
+        requestJson := requestJson + '"InvoiceeTEL2":"'+ EscapeString(Taxinvoice.InvoiceeTEL2) +'",';
+        requestJson := requestJson + '"InvoiceeEmail2":"'+ EscapeString(Taxinvoice.InvoiceeEmail2) +'",';
 
         if Taxinvoice.InvoiceeSMSSendYN then
         requestJson := requestJson + '"InvoiceeSMSSendYN":true,';
 
-        requestJson := requestJson + '"TrusteeCorpNum":"'+ Taxinvoice.TrusteeCorpNum +'",';
-        requestJson := requestJson + '"TrusteeMgtKey":"'+ Taxinvoice.TrusteeMgtKey +'",';
-        requestJson := requestJson + '"TrusteeTaxRegID":"'+ Taxinvoice.TrusteeTaxRegID +'",';
-        requestJson := requestJson + '"TrusteeCorpName":"'+ Taxinvoice.TrusteeCorpName +'",';
-        requestJson := requestJson + '"TrusteeCEOName":"'+ Taxinvoice.TrusteeCEOName +'",';
-        requestJson := requestJson + '"TrusteeAddr":"'+ Taxinvoice.TrusteeAddr +'",';
-        requestJson := requestJson + '"TrusteeBizType":"'+ Taxinvoice.TrusteeBizType +'",';
-        requestJson := requestJson + '"TrusteeBizClass":"'+ Taxinvoice.TrusteeBizClass +'",';
-        requestJson := requestJson + '"TrusteeContactName":"'+ Taxinvoice.TrusteeContactName +'",';
-        requestJson := requestJson + '"TrusteeDeptName":"'+ Taxinvoice.TrusteeDeptName +'",';
-        requestJson := requestJson + '"TrusteeTEL":"'+ Taxinvoice.TrusteeTEL +'",';
-        requestJson := requestJson + '"TrusteeHP":"'+ Taxinvoice.TrusteeHP +'",';
-        requestJson := requestJson + '"TrusteeEmail":"'+ Taxinvoice.TrusteeEmail +'",';
+        requestJson := requestJson + '"TrusteeCorpNum":"'+ EscapeString(Taxinvoice.TrusteeCorpNum) +'",';
+        requestJson := requestJson + '"TrusteeMgtKey":"'+ EscapeString(Taxinvoice.TrusteeMgtKey) +'",';
+        requestJson := requestJson + '"TrusteeTaxRegID":"'+ EscapeString(Taxinvoice.TrusteeTaxRegID) +'",';
+        requestJson := requestJson + '"TrusteeCorpName":"'+ EscapeString(Taxinvoice.TrusteeCorpName) +'",';
+        requestJson := requestJson + '"TrusteeCEOName":"'+ EscapeString(Taxinvoice.TrusteeCEOName) +'",';
+        requestJson := requestJson + '"TrusteeAddr":"'+ EscapeString(Taxinvoice.TrusteeAddr) +'",';
+        requestJson := requestJson + '"TrusteeBizType":"'+ EscapeString(Taxinvoice.TrusteeBizType) +'",';
+        requestJson := requestJson + '"TrusteeBizClass":"'+ EscapeString(Taxinvoice.TrusteeBizClass) +'",';
+        requestJson := requestJson + '"TrusteeContactName":"'+ EscapeString(Taxinvoice.TrusteeContactName) +'",';
+        requestJson := requestJson + '"TrusteeDeptName":"'+ EscapeString(Taxinvoice.TrusteeDeptName) +'",';
+        requestJson := requestJson + '"TrusteeTEL":"'+ EscapeString(Taxinvoice.TrusteeTEL) +'",';
+        requestJson := requestJson + '"TrusteeHP":"'+ EscapeString(Taxinvoice.TrusteeHP) +'",';
+        requestJson := requestJson + '"TrusteeEmail":"'+ EscapeString(Taxinvoice.TrusteeEmail) +'",';
 
         if Taxinvoice.TrusteeSMSSendYN then
         requestJson := requestJson + '"TrusteeSMSSendYN":true,';
 
-        requestJson := requestJson + '"TaxTotal":"'+ Taxinvoice.TaxTotal +'",';
-        requestJson := requestJson + '"SupplyCostTotal":"'+ Taxinvoice.SupplyCostTotal +'",';
-        requestJson := requestJson + '"TotalAmount":"'+ Taxinvoice.TotalAmount +'",';
+        requestJson := requestJson + '"TaxTotal":"'+ EscapeString(Taxinvoice.TaxTotal) +'",';
+        requestJson := requestJson + '"SupplyCostTotal":"'+ EscapeString(Taxinvoice.SupplyCostTotal) +'",';
+        requestJson := requestJson + '"TotalAmount":"'+ EscapeString(Taxinvoice.TotalAmount) +'",';
         if Taxinvoice.ModifyCode <> '' then
-        requestJson := requestJson + '"ModifyCode":'+ Taxinvoice.ModifyCode +',';
+        requestJson := requestJson + '"ModifyCode":'+ EscapeString(Taxinvoice.ModifyCode) +',';
         
-        requestJson := requestJson + '"OrgNTSConfirmNum":"'+ Taxinvoice.OrgNTSConfirmNum +'",';
-        requestJson := requestJson + '"PurposeType":"'+ Taxinvoice.PurposeType +'",';
-        requestJson := requestJson + '"SerialNum":"'+ Taxinvoice.SerialNum +'",';
-        requestJson := requestJson + '"Cash":"'+ Taxinvoice.Cash +'",';
-        requestJson := requestJson + '"ChkBill":"'+ Taxinvoice.ChkBill +'",';
-        requestJson := requestJson + '"Credit":"'+ Taxinvoice.Credit +'",';
-        requestJson := requestJson + '"Note":"'+ Taxinvoice.Note +'",';
+        requestJson := requestJson + '"OrgNTSConfirmNum":"'+ EscapeString(Taxinvoice.OrgNTSConfirmNum) +'",';
+        requestJson := requestJson + '"PurposeType":"'+ EscapeString(Taxinvoice.PurposeType) +'",';
+        requestJson := requestJson + '"SerialNum":"'+ EscapeString(Taxinvoice.SerialNum) +'",';
+        requestJson := requestJson + '"Cash":"'+ EscapeString(Taxinvoice.Cash) +'",';
+        requestJson := requestJson + '"ChkBill":"'+ EscapeString(Taxinvoice.ChkBill) +'",';
+        requestJson := requestJson + '"Credit":"'+ EscapeString(Taxinvoice.Credit) +'",';
+        requestJson := requestJson + '"Note":"'+ EscapeString(Taxinvoice.Note) +'",';
         if Taxinvoice.Kwon <> '' then
-        requestJson := requestJson + '"Kwon":'+ Taxinvoice.Kwon +',';
+        requestJson := requestJson + '"Kwon":'+ EscapeString(Taxinvoice.Kwon) +',';
         if Taxinvoice.HO <> '' then
-        requestJson := requestJson + '"Ho":'+ Taxinvoice.Ho +',';
+        requestJson := requestJson + '"Ho":'+ EscapeString(Taxinvoice.Ho) +',';
 
         if Taxinvoice.BusinessLicenseYN then
         requestJson := requestJson + '"BusinessLicenseYN":true,';
@@ -457,9 +457,9 @@ begin
         if Taxinvoice.FAXSendYN then
         requestJson := requestJson + '"FAXSendYN":true,';
 
-        requestJson := requestJson + '"FAXReceiveNum":"'+ Taxinvoice.FAXReceiveNum +'",';
-        requestJson := requestJson + '"NTSConfirmNum":"'+ Taxinvoice.NTSConfirmNum +'",';
-        requestJson := requestJson + '"OriginalTaxinvoiceKey":"'+ Taxinvoice.OriginalTaxinvoiceKey +'",';
+        requestJson := requestJson + '"FAXReceiveNum":"'+ EscapeString(Taxinvoice.FAXReceiveNum) +'",';
+        requestJson := requestJson + '"NTSConfirmNum":"'+ EscapeString(Taxinvoice.NTSConfirmNum) +'",';
+        requestJson := requestJson + '"OriginalTaxinvoiceKey":"'+ EscapeString(Taxinvoice.OriginalTaxinvoiceKey) +'",';
 
         if Length(Taxinvoice.detailList) > 0 then
         begin
@@ -469,14 +469,14 @@ begin
                 begin
                         requestJson := requestJson + '{';
                         requestJson := requestJson + '"SerialNum":"' + IntToStr(Taxinvoice.detailList[i].SerialNum) + '",';
-                        requestJson := requestJson + '"PurchaseDT":"' +Taxinvoice.detailList[i].PurchaseDT + '",';
-                        requestJson := requestJson + '"ItemName":"' +Taxinvoice.detailList[i].ItemName + '",';
-                        requestJson := requestJson + '"Spec":"' +Taxinvoice.detailList[i].Spec + '",';
-                        requestJson := requestJson + '"Qty":"' +Taxinvoice.detailList[i].Qty + '",';
-                        requestJson := requestJson + '"UnitCost":"' +Taxinvoice.detailList[i].UnitCost + '",';
-                        requestJson := requestJson + '"SupplyCost":"' +Taxinvoice.detailList[i].SupplyCost + '",';
-                        requestJson := requestJson + '"Tax":"' +Taxinvoice.detailList[i].Tax + '",';
-                        requestJson := requestJson + '"Remark":"' +Taxinvoice.detailList[i].Remark + '"';
+                        requestJson := requestJson + '"PurchaseDT":"' + EscapeString(Taxinvoice.detailList[i].PurchaseDT) + '",';
+                        requestJson := requestJson + '"ItemName":"' +EscapeString(Taxinvoice.detailList[i].ItemName) + '",';
+                        requestJson := requestJson + '"Spec":"' + EscapeString(Taxinvoice.detailList[i].Spec) + '",';
+                        requestJson := requestJson + '"Qty":"' + EscapeString(Taxinvoice.detailList[i].Qty) + '",';
+                        requestJson := requestJson + '"UnitCost":"' + EscapeString(Taxinvoice.detailList[i].UnitCost) + '",';
+                        requestJson := requestJson + '"SupplyCost":"' + EscapeString(Taxinvoice.detailList[i].SupplyCost) + '",';
+                        requestJson := requestJson + '"Tax":"' + EscapeString(Taxinvoice.detailList[i].Tax) + '",';
+                        requestJson := requestJson + '"Remark":"' + EscapeString(Taxinvoice.detailList[i].Remark) + '"';
                         requestJson := requestJson + '}';
                         if i < Length(Taxinvoice.detailList) - 1 then
                                  requestJson := requestJson + ',';
@@ -494,8 +494,8 @@ begin
                 for i := 0 to Length(Taxinvoice.AddContactList)-1 do
                 begin
                         requestJson := requestJson + '{';
-                        requestJson := requestJson + '"Email":"' +Taxinvoice.AddContactList[i].Email + '",';
-                        requestJson := requestJson + '"ContactName":"' +Taxinvoice.AddContactList[i].ContactName + '"';
+                        requestJson := requestJson + '"Email":"' + EscapeString(Taxinvoice.AddContactList[i].Email) + '",';
+                        requestJson := requestJson + '"ContactName":"' + EscapeString(Taxinvoice.AddContactList[i].ContactName) + '"';
                         requestJson := requestJson + '}';
                         if i < Length(Taxinvoice.AddContactList) - 1 then
                                  requestJson := requestJson + ',';
@@ -506,9 +506,9 @@ begin
 
         end;
 
-        requestJson := requestJson + '"Remark1":"'+ Taxinvoice.Remark1 +'",';
-        requestJson := requestJson + '"Remark2":"'+ Taxinvoice.Remark2 +'",';
-        requestJson := requestJson + '"Remark3":"'+ Taxinvoice.Remark3 +'"';
+        requestJson := requestJson + '"Remark1":"'+ EscapeString(Taxinvoice.Remark1) +'",';
+        requestJson := requestJson + '"Remark2":"'+ EscapeString(Taxinvoice.Remark2) +'",';
+        requestJson := requestJson + '"Remark3":"'+ EscapeString(Taxinvoice.Remark3) +'"';
         requestJson := requestJson + '}';
 
         result := requestJson;
@@ -560,7 +560,7 @@ begin
                 Exit;
         end;
 
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'SEND');
@@ -579,7 +579,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'CANCELSEND');
@@ -598,7 +598,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'ACCEPT');
@@ -617,7 +617,8 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'DENY');
@@ -639,7 +640,7 @@ begin
 
         if ForceIssue then forIssue := 'true' else forIssue := 'false';
 
-        requestJson := '{"memo":"'+Memo+'","emailSubject":"'+EmailSubject+'","forceIssue":'+forIssue+'}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'","emailSubject":"'+EscapeString(EmailSubject)+'","forceIssue":'+forIssue+'}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'ISSUE');
@@ -658,7 +659,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'CANCELISSUE');
@@ -677,7 +678,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'REQUEST');
@@ -696,7 +697,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'REFUSE');
@@ -715,7 +716,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"memo":"'+Memo+'"}';
+        requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'CANCELREQUEST');
@@ -751,7 +752,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;                                                             
         end;
-        requestJson := '{"receiver":"'+Receiver+'"}';
+        requestJson := '{"receiver":"'+EscapeString(Receiver)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'EMAIL');
@@ -770,7 +771,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"sender":"'+Sender+'","receiver":"'+Receiver+'","contents":"'+Contents+'"}';
+        requestJson := '{"sender":"'+EscapeString(Sender)+'","receiver":"'+EscapeString(Receiver)+'","contents":"'+EscapeString(Contents)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'SMS');
@@ -789,7 +790,7 @@ begin
                 raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                 Exit;
         end;
-        requestJson := '{"sender":"'+Sender+'","receiver":"'+Receiver+'"}';
+        requestJson := '{"sender":"'+EscapeString(Sender)+'","receiver":"'+EscapeString(Receiver)+'"}';
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'FAX');
@@ -1229,7 +1230,7 @@ begin
         requestJson := '[';
         for i:=0 to Length(MgtKeyList) -1 do
         begin
-                requestJson := requestJson + '"' + MgtKeyList[i] + '"';
+                requestJson := requestJson + '"' + EscapeString(MgtKeyList[i]) + '"';
                 if (i + 1) < Length(MgtKeyList) then requestJson := requestJson + ',';
         end;
 
