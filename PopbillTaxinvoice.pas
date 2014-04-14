@@ -234,7 +234,7 @@ type
         public
                 constructor Create(PartnerID : String; SecretKey : String);
                 //팝빌 세금계산서 연결 url.
-                function GetTaxinvoiceURL(CorpNum : String; UserID : String; TOGO : String) : String;
+                function GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
 
                 //관리번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
@@ -322,7 +322,7 @@ begin
        AddScope('110');
 end;
 
-function TTaxinvoiceService.GetTaxinvoiceURL(CorpNum : String; UserID : String; TOGO : String) : String;
+function TTaxinvoiceService.GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
 var
         responseJson : String;
 begin
