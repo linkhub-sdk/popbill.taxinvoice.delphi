@@ -835,11 +835,11 @@ begin
         result.openYN := getJSonString(json,'openYN') = 'true';
 
         result.openDT := getJSonString(json,'openDT');
-        result.nTSResult := getJSonString(json,'nTSResult');
-        result.nTSConfirmNum := getJSonString(json,'nTSConfirmNum');
-        result.nTSSendDT := getJSonString(json,'nTSSendDT');
-        result.nTSResultDT := getJSonString(json,'nTSResultDT');
-        result.nTSSendErrCode := getJSonString(json,'nTSSendErrCode');
+        result.nTSResult := getJSonString(json,'ntsresult');
+        result.nTSConfirmNum := getJSonString(json,'ntsconfirmNum');
+        result.nTSSendDT := getJSonString(json,'ntssendDT');
+        result.nTSResultDT := getJSonString(json,'ntsresultDT');
+        result.nTSSendErrCode := getJSonString(json,'ntssendErrCode');
 
         result.stateMemo := getJSonString(json,'stateMemo');
 
