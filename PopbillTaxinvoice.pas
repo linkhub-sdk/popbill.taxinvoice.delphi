@@ -463,7 +463,7 @@ begin
 
         if Length(Taxinvoice.detailList) > 0 then
         begin
-                requestJson := requestJson + '"eetailList":[';
+                requestJson := requestJson + '"detailList":[';
 
                 for i := 0 to Length(Taxinvoice.detailList)-1 do
                 begin
