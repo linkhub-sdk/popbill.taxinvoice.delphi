@@ -888,7 +888,7 @@ begin
         result.invoicerTEL              := getJSonString(json,'invoicerTEL');
         result.invoicerHP               := getJSonString(json,'invoicerHP');
         result.invoicerEmail            := getJSonString(json,'invoicerEmail');
-        result.invoicerSMSSendYN        := getJSonString(json,'invoicerSMSSendYN') = 'true';
+        result.invoicerSMSSendYN        := getJSonBoolean(json,'invoicerSMSSendYN');
 
         result.invoiceeCorpNum          := getJSonString(json,'invoiceeCorpNum');
         result.invoiceeMgtKey           := getJSonString(json,'invoiceeMgtKey');
@@ -908,7 +908,7 @@ begin
         result.invoiceeTEL2             := getJSonString(json,'invoiceeTEL2');
         result.invoiceeHP2              := getJSonString(json,'invoiceeHP2');
         result.invoiceeEmail2           := getJSonString(json,'invoiceeEmail2');
-        result.invoiceeSMSSendYN        := getJSonString(json,'invoiceeSMSSendYN') = 'true';
+        result.invoiceeSMSSendYN        := getJSonBoolean(json,'invoiceeSMSSendYN');
 
         result.trusteeCorpNum          := getJSonString(json,'trusteeCorpNum');
         result.trusteeMgtKey           := getJSonString(json,'trusteeMgtKey');
@@ -923,7 +923,7 @@ begin
         result.trusteeTEL              := getJSonString(json,'trusteeTEL');
         result.trusteeHP               := getJSonString(json,'trusteeHP');
         result.trusteeEmail            := getJSonString(json,'trusteeEmail');
-        result.trusteeSMSSendYN        := getJSonString(json,'trusteeSMSSendYN') = 'true';
+        result.trusteeSMSSendYN        := getJSonBoolean(json,'trusteeSMSSendYN');
 
         result.taxTotal                := getJSonString(json,'taxTotal');
         result.supplyCostTotal         := getJSonString(json,'supplyCostTotal');
@@ -947,9 +947,9 @@ begin
         result.kwon                    := getJSonString(json,'kwon');
         result.ho                      := getJSonString(json,'ho');
 
-        result.businessLicenseYN        := getJSonString(json,'businessLicenseYN') = 'true';
-        result.bankBookYN               := getJSonString(json,'bankBookYN') = 'true';
-        result.fAXSendYN                := getJSonString(json,'faxsendYN') = 'true';
+        result.businessLicenseYN        := getJSonBoolean(json,'businessLicenseYN');
+        result.bankBookYN               := getJSonBoolean(json,'bankBookYN');
+        result.fAXSendYN                := getJSonBoolean(json,'faxsendYN');
 
         result.fAXReceiveNum            := getJSonString(json,'faxreceiveNum');
         result.nTSConfirmNum            := getJSonString(json,'ntsconfirmNum');
