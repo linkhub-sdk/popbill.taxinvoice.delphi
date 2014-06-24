@@ -832,7 +832,7 @@ begin
         result.stateDT := getJSonString(json,'stateDT');
 
 
-        result.openYN := getJSonString(json,'openYN') = 'true';
+        result.openYN := getJSonBoolean(json,'openYN');
 
         result.openDT := getJSonString(json,'openDT');
         result.nTSResult := getJSonString(json,'ntsresult');
