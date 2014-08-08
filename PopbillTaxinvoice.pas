@@ -297,6 +297,8 @@ type
                 function GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
                 //인쇄URL
                 function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
+                //공급받는자 인쇄URL
+                function GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
                 //다량인쇄URL
                 function GetMassPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKeyList: Array Of String; UserID: String) : string;
 
@@ -1212,6 +1214,21 @@ begin
         end;
         
         responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=PRINT',CorpNum,UserID);
+
+        result := getJSonString(responseJson,'url');
+end;
+
+function TTaxinvoiceService.GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String) : string;
+var
+        responseJson : String;
+begin
+        if MgtKey = '' then
+        begin
+                raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
+                Exit;
+        end;
+        
+        responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=EPRINT',CorpNum,UserID);
 
         result := getJSonString(responseJson,'url');
 end;
