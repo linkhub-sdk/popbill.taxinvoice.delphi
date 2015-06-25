@@ -486,6 +486,7 @@ begin
                 for i := 0 to Length(Taxinvoice.AddContactList)-1 do
                 begin
                         requestJson := requestJson + '{';
+                        requestJson := requestJson + '"serialNum":"' + IntToStr(Taxinvoice.AddContactList[i].SerialNum) + '",';
                         requestJson := requestJson + '"email":"' + EscapeString(Taxinvoice.AddContactList[i].Email) + '",';
                         requestJson := requestJson + '"contactName":"' + EscapeString(Taxinvoice.AddContactList[i].ContactName) + '"';
                         requestJson := requestJson + '}';
