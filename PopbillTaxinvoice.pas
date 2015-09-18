@@ -216,7 +216,7 @@ type
                 
                 function jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
                 function jsonToTTaxinvoice(json : String) : TTaxinvoice;
-                function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean) : String;
+                function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : String; emailSubject : String; dealInvoiceMgtKey : String) : String;
                 
         public
                 constructor Create(LinkID : String; SecretKey : String);
@@ -226,6 +226,8 @@ type
                 //관리번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
                 
+                //즉시발행
+                function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TResponse;  
                 //임시저장.
                 function Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
                 //수정.
@@ -350,7 +352,7 @@ begin
         result:= taxinvoiceInfo.ItemKey <> '';
 end;
 
-function TTaxinvoiceService.TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean) : String;
+function TTaxinvoiceService.TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : string; emailSubject : String; dealInvoiceMgtKey: STring) : String;
 var
         requestJson : string;
         i : integer;
@@ -359,6 +361,12 @@ begin
         
         if writeSpecification then
         requestJson := requestJson + '"writeSpecification":true,';
+        if forceIssue then
+        requestJson := requestJson + '"forceIssue":true,';
+
+        requestJson := requestJson + '"memo":"'+ memo +'",';
+        requestJson := requestJson + '"emailSubject":"'+ emailSubject +'",';
+        requestJson := requestJson + '"dealInvoiceMgtKey":"'+ dealInvoiceMgtKey +'",';
 
         requestJson := requestJson + '"writeDate":"'+ EscapeString(Taxinvoice.WriteDate) +'",';
 
@@ -507,12 +515,26 @@ begin
         result := requestJson;
 end;
 
+function TTaxinvoiceService.RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserId : String = '') : TResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+        requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,forceIssue,memo,emailSubject,dealInvoiceMgtKey);
+
+        responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson,'ISSUE');
+
+        result.code := getJSonInteger(responseJson,'code');
+        result.message := getJSonString(responseJson,'message');
+
+end;
+
 function TTaxinvoiceService.Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
 var
         requestJson : string;
         responseJson : string;
 begin
-        requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification);
+        requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,false,'','','');
 
         responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson);
 
@@ -532,7 +554,7 @@ begin
                 Exit;
         end;
         
-        requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification);
+        requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,false,'','','');
 
         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'PATCH');
