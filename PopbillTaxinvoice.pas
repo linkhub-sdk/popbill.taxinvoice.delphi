@@ -132,6 +132,8 @@ type
 
         end;
 
+
+
         TTaxinvoiceInfo = class
         public
                 ItemKey                 : string;
@@ -155,7 +157,7 @@ type
 
                 SupplyCostTotal         : string;
                 TaxTotal                : string;
-
+                lateIssueYN             : boolean;
                 IssueDT                 : string;
                 PreIssueDT              : string;
                 StateDT                 : string;
@@ -175,6 +177,17 @@ type
         end;
 
         TTaxinvoiceInfoList = Array of TTaxinvoiceInfo;
+
+        TSearchList = class
+        public
+                code                    : Integer;
+                total                   : Integer;
+                perPage                 : Integer;
+                pageNum                 : Integer;
+                pageCount               : Integer;
+                message                 : String;
+                list                    : TTaxinvoiceInfoList;
+        end;
 
         TTaxinvoiceLog = class
         public
@@ -269,6 +282,8 @@ type
                 function SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String) : TResponse;
                 // 팩스 재전송.
                 function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String) : TResponse;
+                // 세금계산서 상세검색
+                function SearchInfos(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer) : TSearchList;
 
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -839,12 +854,14 @@ begin
         result.trusteeCorpNum := getJSonString(json,'trusteeCorpNum');
         result.trusteeMgtKey := getJSonString(json,'trusteeMgtKey');
 
+
         result.supplyCostTotal := getJSonString(json,'supplyCostTotal');
         result.taxTotal := getJSonString(json,'taxTotal');
         result.purposeType := getJSonString(json,'purposeType');
         result.modifyCode := getJSonString(json,'modifyCode');
         result.issueType := getJSonString(json,'issueType');
 
+        result.lateIssueYN := getJsonBoolean(json,'lateIssueYN');
         result.issueDT := getJSonString(json,'issueDT');
         result.preIssueDT := getJSonString(json,'preIssueDT');
 
@@ -879,6 +896,124 @@ begin
 
         result := jsonToTTaxinvoiceInfo(responseJson);
 
+end;
+
+function TTaxinvoiceService.searchInfos(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; Page : Integer; PerPage : Integer) : TSearchList;
+var
+        responseJson : string;
+        uri : String;
+        StateList : String;
+        TypeList : String;
+        TaxTypeList : String;
+        i : Integer;
+        SearchList : TSearchList;
+        jsons : ArrayOfString;
+begin
+        if DType = '' then
+        begin
+                raise EPopbillException.Create(-99999999,'상세검색 일자유형이 입력되지 않았습니다.');
+                Exit;
+        end;
+
+        if SDate = '' then
+        begin
+                raise EPopbillException.Create(-99999999,'상세검색 시작일자가 입력되지 않았습니다.');
+                Exit;
+        end;
+
+        if EDate = '' then
+        begin
+                raise EPopbillException.Create(-99999999,'상세검색 종료일자가 입력되지 않았습니다.');
+                Exit;
+        end;
+
+        for i := 0 to High(State) do
+        begin
+                if State[i] <> '' Then
+                StateList := StateList + State[i] +',';
+        end;
+
+        for i := 0 to High(TType) do
+        begin
+                if TType[i] <> '' Then
+                TypeList := TypeList + TType[i] +',';
+        end;
+
+        for i := 0 to High(TaxType) do
+        begin
+                if TaxType[i] <> '' Then
+                TaxTypeList := TaxTypeList + TaxType[i] +',';
+        end;
+
+        if Page < 1 then Page := 1;
+        if PerPage < 1 then PerPage := 500;
+        if PerPage > 1000 then PerPage := 500;  
+
+        uri := '/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType));
+        uri := uri + '?DType='+ DType + '&&SDate=' + SDate + '&&EDate=' + EDate;
+        uri := uri + '&&State=' + StateList + '&&Type=' + TypeList +'&&TaxType=' + TaxTypeList;
+        uri := uri + '&&LateOnly='+ LateOnly + '&&Page=' +IntToStr(Page) + '&&PerPage=' + IntToStr(PerPage);
+
+        responseJson := httpget(uri, CorpNum,'');
+
+        result := TSearchList.Create;
+
+        result.code             := getJSonInteger(responseJson,'code');
+        result.total            := getJSonInteger(responseJson,'total');
+        result.perPage          := getJSonInteger(responseJson,'perPage');
+        result.pageNum          := getJSonInteger(responseJson,'pageNum');
+        result.pageCount        := getJSonInteger(responseJson,'pageCount');
+        result.message          := getJSonString(responseJson,'message');
+
+        try
+                jSons := getJSonList(responseJson,'list');
+                SetLength(result.list, Length(jSons));
+                for i:=0 to Length(jSons)-1 do
+                begin
+                        result.list[i] := TTaxinvoiceInfo.Create;
+                        result.list[i].ItemKey := getJSonString(jSons[i],'itemKey');
+                        result.list[i].taxType := getJSonString(jSons[i],'taxType');
+                        result.list[i].writeDate := getJSonString(jSons[i],'writeDate');
+                        result.list[i].RegDT := getJSonString(jSons[i],'regDT');
+
+                        result.list[i].invoicerCorpName := getJSonString(jSons[i],'invoicerCorpName');
+                        result.list[i].invoicerCorpNum := getJSonString(jSons[i],'invoicerCorpNum');
+                        result.list[i].invoicerMgtKey := getJSonString(jSons[i],'invoicerMgtKey');
+                        result.list[i].invoiceeCorpName := getJSonString(jSons[i],'invoiceeCorpName');
+                        result.list[i].invoiceeCorpNum := getJSonString(jSons[i],'invoiceeCorpNum');
+                        result.list[i].invoiceeMgtKey := getJSonString(jSons[i],'invoiceeMgtKey');
+                        result.list[i].trusteeCorpName := getJSonString(jSons[i],'trusteeCorpName');
+                        result.list[i].trusteeCorpNum := getJSonString(jSons[i],'trusteeCorpNum');
+                        result.list[i].trusteeMgtKey := getJSonString(jSons[i],'trusteeMgtKey');
+
+
+                        result.list[i].supplyCostTotal := getJSonString(jSons[i],'supplyCostTotal');
+                        result.list[i].taxTotal := getJSonString(jSons[i],'taxTotal');
+                        result.list[i].purposeType := getJSonString(jSons[i],'purposeType');
+                        result.list[i].modifyCode := getJSonString(jSons[i],'modifyCode');
+                        result.list[i].issueType := getJSonString(jSons[i],'issueType');
+
+                        result.list[i].lateIssueYN := getJsonBoolean(jSons[i],'lateIssueYN');
+                        result.list[i].issueDT := getJSonString(jSons[i],'issueDT');
+                        result.list[i].preIssueDT := getJSonString(jSons[i],'preIssueDT');
+
+                        result.list[i].stateCode := getJSonInteger(jSons[i],'stateCode');
+                        result.list[i].stateDT := getJSonString(jSons[i],'stateDT');
+
+
+                        result.list[i].openYN := getJSonBoolean(jSons[i],'openYN');
+
+                        result.list[i].openDT := getJSonString(jSons[i],'openDT');
+                        result.list[i].nTSResult := getJSonString(jSons[i],'ntsresult');
+                        result.list[i].nTSConfirmNum := getJSonString(jSons[i],'ntsconfirmNum');
+                        result.list[i].nTSSendDT := getJSonString(jSons[i],'ntssendDT');
+                        result.list[i].nTSResultDT := getJSonString(jSons[i],'ntsresultDT');
+                        result.list[i].nTSSendErrCode := getJSonString(jSons[i],'ntssendErrCode');
+                        result.list[i].stateMemo := getJSonString(jSons[i],'stateMemo');
+                end;
+        except on E:Exception do
+                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+        end;
 end;
 
 
