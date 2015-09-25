@@ -237,7 +237,7 @@ type
                 function GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
 
                 //관리번호 사용여부 확인
-                function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
+                function CheckMgtKey(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
                 
                 //즉시발행
                 function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TResponse;  
@@ -339,7 +339,7 @@ begin
         result := getJSonString(responseJson,'url');
 end;
 
-function TTaxinvoiceService.CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String): boolean;
+function TTaxinvoiceService.CheckMgtKey(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String): boolean;
 var
         responseJson : string;
         taxinvoiceInfo : TTaxinvoiceInfo;
