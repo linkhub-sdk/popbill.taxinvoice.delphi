@@ -320,6 +320,11 @@ type
 
                 //ASP 사업자 유통메일목록 확인.
                 function GetEmailPublicKeys(CorpNum : String) : TEmailPublicKeyList;
+
+                // 세금계산서에 전자명세서 첨부
+                function AttachStatement(CorpNum : String; MgtKeyType: EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
+                // 세금계산서에 전자명세서 해제
+                function DetachStatement(CorpNum : String; MgtKeyType: EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
         end;
 
 
@@ -1117,7 +1122,6 @@ var
         TypeList : String;
         TaxTypeList : String;
         i : Integer;
-        SearchList : TSearchList;
         jsons : ArrayOfString;
 begin
         if DType = '' then
@@ -1726,6 +1730,74 @@ begin
 
         except on E:Exception do
                 raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+        end;
+
+end;
+
+function TTaxinvoiceService.AttachStatement(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+        if MgtKey = '' then
+        begin
+                result.code := -99999999;
+                result.message := '관리번호가 입력되지 않았습니다.';
+                Exit;
+        end;
+        
+        try
+                requestJson := '{"ItemCode":"'+EscapeString(IntToStr(SubItemCode))+'","MgtKey":"'+EscapeString(SubMgtKey)+'"}';
+
+                responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey+'/AttachStmt',
+                                CorpNum,'',requestJson,'');
+
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                        end;
+                        
+                        result.code := le.code;
+                        result.message := le.Message;
+                end;
+        end;
+
+end;
+
+function TTaxinvoiceService.DetachStatement(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+        if MgtKey = '' then
+        begin
+                result.code := -99999999;
+                result.message := '관리번호가 입력되지 않았습니다.';
+                Exit;
+        end;
+        
+        try
+                requestJson := '{"ItemCode":"'+EscapeString(IntToStr(SubItemCode))+'","MgtKey":"'+EscapeString(SubMgtKey)+'"}';
+
+                responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey+'/DetachStmt',
+                                CorpNum,'',requestJson,'');
+
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                        end;
+                        
+                        result.code := le.code;
+                        result.message := le.Message;
+                end;
         end;
 
 end;
