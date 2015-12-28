@@ -283,7 +283,7 @@ type
                 // 팩스 재전송.
                 function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String) : TResponse;
                 // 세금계산서 목록조회
-                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer) : TSearchList;
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList;
 
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -1114,7 +1114,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; Page : Integer; PerPage : Integer) : TSearchList;
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList;
 var
         responseJson : string;
         uri : String;
@@ -1168,6 +1168,7 @@ begin
         uri := uri + '?DType='+ DType + '&&SDate=' + SDate + '&&EDate=' + EDate;
         uri := uri + '&&State=' + StateList + '&&Type=' + TypeList +'&&TaxType=' + TaxTypeList;
         uri := uri + '&&LateOnly='+ LateOnly + '&&Page=' +IntToStr(Page) + '&&PerPage=' + IntToStr(PerPage);
+        uri := uri + '&&Order=' + Order;
 
         responseJson := httpget(uri, CorpNum,'');
 
