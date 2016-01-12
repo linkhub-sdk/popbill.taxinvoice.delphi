@@ -163,6 +163,9 @@ type
                 StateDT                 : string;
                 OpenYN                  : boolean;
                 OpenDT                  : string;
+                InvoicerPrintYN         : boolean;
+                InvoiceePrintYN         : boolean;
+                TrusteePrintYN          : boolean;
 
                 NTSResult               : string;
                 NTSConfirmNum           : string;
@@ -1096,6 +1099,10 @@ begin
 
         result.stateMemo := getJSonString(json,'stateMemo');
 
+        result.InvoicerPrintYN := getJSonBoolean(json,'invoicerPrintYN');
+        result.InvoiceePrintYN := getJSonBoolean(json,'invoiceePrintYN');
+        result.TrusteePrintYN := getJSonBoolean(json,'irusteePrintYN');
+
 end;
 
 function TTaxinvoiceService.getInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -1195,13 +1202,17 @@ begin
                         result.list[i].invoicerCorpName := getJSonString(jSons[i],'invoicerCorpName');
                         result.list[i].invoicerCorpNum := getJSonString(jSons[i],'invoicerCorpNum');
                         result.list[i].invoicerMgtKey := getJSonString(jSons[i],'invoicerMgtKey');
+                        result.list[i].invoicerPrintYN := getJSonBoolean(jSons[i],'invoicerPrintYN');
+                                                
                         result.list[i].invoiceeCorpName := getJSonString(jSons[i],'invoiceeCorpName');
                         result.list[i].invoiceeCorpNum := getJSonString(jSons[i],'invoiceeCorpNum');
                         result.list[i].invoiceeMgtKey := getJSonString(jSons[i],'invoiceeMgtKey');
+                        result.list[i].invoiceePrintYN := getJSonBoolean(jSons[i],'invoiceePrintYN');
+                                                
                         result.list[i].trusteeCorpName := getJSonString(jSons[i],'trusteeCorpName');
                         result.list[i].trusteeCorpNum := getJSonString(jSons[i],'trusteeCorpNum');
                         result.list[i].trusteeMgtKey := getJSonString(jSons[i],'trusteeMgtKey');
-
+                        result.list[i].trusteePrintYN := getJSonBoolean(jSons[i],'trusteePrintYN');
 
                         result.list[i].supplyCostTotal := getJSonString(jSons[i],'supplyCostTotal');
                         result.list[i].taxTotal := getJSonString(jSons[i],'taxTotal');
@@ -1226,6 +1237,9 @@ begin
                         result.list[i].nTSResultDT := getJSonString(jSons[i],'ntsresultDT');
                         result.list[i].nTSSendErrCode := getJSonString(jSons[i],'ntssendErrCode');
                         result.list[i].stateMemo := getJSonString(jSons[i],'stateMemo');
+
+
+
                 end;
         except on E:Exception do
                 raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
