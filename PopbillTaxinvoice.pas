@@ -1077,7 +1077,7 @@ begin
         result.supplyCostTotal := getJSonString(json,'supplyCostTotal');
         result.taxTotal := getJSonString(json,'taxTotal');
         result.purposeType := getJSonString(json,'purposeType');
-        result.modifyCode := getJSonString(json,'modifyCode');
+        result.modifyCode := IntToStr(getJSonInteger(json,'modifyCode'));
         result.issueType := getJSonString(json,'issueType');
 
         result.lateIssueYN := getJsonBoolean(json,'lateIssueYN');
