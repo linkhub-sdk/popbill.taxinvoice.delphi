@@ -129,6 +129,7 @@ type
                 originalTaxinvoiceKey : string;
                 detailList              : TDetailList;
                 addContactList          : TContactList;
+                destructor Destroy; override;
 
         end;
 
@@ -190,6 +191,7 @@ type
                 pageCount               : Integer;
                 message                 : String;
                 list                    : TTaxinvoiceInfoList;
+                destructor Destroy; override;
         end;
 
         TTaxinvoiceLog = class
@@ -330,9 +332,33 @@ type
                 function DetachStatement(CorpNum : String; MgtKeyType: EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
         end;
 
-
-
 implementation
+destructor TTaxinvoice.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(detailList)-1 do
+    if Assigned(detailList[I]) then
+      detailList[I].Free;
+  SetLength(detailList, 0);
+  for I := 0 to Length(addContactList)-1 do
+    if Assigned(addContactList[I]) then
+      addContactList[I].Free;
+  SetLength(addContactList, 0);
+  inherited Destroy;
+end;
+
+destructor TSearchList.Destroy;
+var
+  I: Integer;
+begin
+  for I := 0 to Length(list)-1 do
+    if Assigned(list[I]) then
+      list[I].Free;
+  SetLength(list, 0);
+  inherited Destroy;
+end;
+
 constructor TTaxinvoiceService.Create(LinkID : String; SecretKey : String);
 begin
        inherited Create(LinkID,SecretKey);
