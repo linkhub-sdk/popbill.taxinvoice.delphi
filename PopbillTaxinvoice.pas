@@ -7,7 +7,8 @@
 * http://www.popbill.com
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
-
+* Contributor : Jeong Yohan (code@linkhub.co.kr)
+* Updated : 2016-06-23
 * Thanks for your interest. 
 *=================================================================================
 *)
@@ -22,6 +23,12 @@ uses
 type
 
         EnumMgtKeyType = (SELL,BUY,TRUSTEE);
+        TTaxinvoiceChargeInfo = class
+        public
+                unitCost : string;
+                chargeMethod : string;
+                rateSystem : string;
+        end;
 
         TTaxinvoiceDetail = class
         public
@@ -330,6 +337,9 @@ type
                 function AttachStatement(CorpNum : String; MgtKeyType: EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
                 // 세금계산서에 전자명세서 해제
                 function DetachStatement(CorpNum : String; MgtKeyType: EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
+
+                // 과금정보 확인
+                function GetChargeInfo (CorpNum : String) : TTaxinvoiceChargeInfo;
         end;
 
 implementation
@@ -363,6 +373,24 @@ constructor TTaxinvoiceService.Create(LinkID : String; SecretKey : String);
 begin
        inherited Create(LinkID,SecretKey);
        AddScope('110');
+end;
+
+function TTaxinvoiceService.GetChargeInfo (CorpNum : string) : TTaxinvoiceChargeInfo;
+var
+        responseJson : String;
+begin
+        responseJson := httpget('/Taxinvoice/ChargeInfo',CorpNum,'');
+
+        try
+                result := TTaxinvoiceChargeInfo.Create;
+
+                result.unitCost := getJSonString(responseJson, 'unitCost');
+                result.chargeMethod := getJSonString(responseJson, 'chargeMethod');
+                result.rateSystem := getJSonString(responseJson, 'rateSystem');
+
+        except on E:Exception do
+                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+        end;
 end;
 
 function TTaxinvoiceService.GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
