@@ -294,8 +294,13 @@ type
                 function SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String) : TResponse;
                 // 팩스 재전송.
                 function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String) : TResponse;
+
                 // 세금계산서 목록조회
-                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList;
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
+
+                // 세금계산서 목록조회
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDYN : Boolean; TaxRegIDType : String; TaxRegID: Array of String; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
+
 
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -1177,6 +1182,14 @@ end;
 
 function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList;
 var
+        TaxRegID : Array of String;
+begin
+        SetLength(TaxRegID,0);   
+        Result := search(CorpNum,MgtKeyType,DType,SDate,EDate,State,TType,TaxType,LateOnly,false,'',TaxRegID,Page,PerPage,Order);
+end;
+
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDYN : Boolean; TaxRegIDType :String; TaxRegID: Array of String; Page : Integer; PerPage : Integer; Order : String) : TSearchList;
+var
         responseJson : string;
         uri : String;
         StateList : String;
@@ -1184,6 +1197,7 @@ var
         TaxTypeList : String;
         i : Integer;
         jsons : ArrayOfString;
+        TaxRegIDList : String;
 begin
         if DType = '' then
         begin
@@ -1206,30 +1220,61 @@ begin
         for i := 0 to High(State) do
         begin
                 if State[i] <> '' Then
-                StateList := StateList + State[i] +',';
+                StateList := StateList + State[i];
+
+                if i <> High(State) then
+                StateList := StateList + ',';
         end;
 
         for i := 0 to High(TType) do
         begin
                 if TType[i] <> '' Then
-                TypeList := TypeList + TType[i] +',';
+                TypeList := TypeList + TType[i];
+
+                if i <> High(TType) then
+                TypeList := TypeList + ',';
         end;
 
         for i := 0 to High(TaxType) do
         begin
                 if TaxType[i] <> '' Then
-                TaxTypeList := TaxTypeList + TaxType[i] +',';
+                TaxTypeList := TaxTypeList + TaxType[i];
+
+                if i <> High(TaxType) then
+                TaxTypeList := TaxTypeList + ',';
+        end;
+
+        for i := 0 to High(TaxRegID) do
+        begin
+                if TaxRegID[i] <> '' Then
+                TaxRegIDList := TaxRegIDList + TaxRegID[i];
+
+                if i <> High(TaxRegID) then
+                TaxRegIDList := TaxRegIDList + ',';
         end;
 
         if Page < 1 then Page := 1;
         if PerPage < 1 then PerPage := 500;
-        if PerPage > 1000 then PerPage := 500;  
+        if PerPage > 1000 then PerPage := 500;
 
         uri := '/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType));
         uri := uri + '?DType='+ DType + '&&SDate=' + SDate + '&&EDate=' + EDate;
         uri := uri + '&&State=' + StateList + '&&Type=' + TypeList +'&&TaxType=' + TaxTypeList;
         uri := uri + '&&LateOnly='+ LateOnly + '&&Page=' +IntToStr(Page) + '&&PerPage=' + IntToStr(PerPage);
         uri := uri + '&&Order=' + Order;
+
+
+        if TaxRegIDYN then
+        begin
+                uri := uri + '&&TaxRegIDYN=1';
+        end
+        else
+        begin
+                uri := uri + '&&TaxRegIDYN=0';
+        end;
+        
+        uri := uri + '&&TaxRegIDType=' +TaxRegIDType;
+        uri := uri + '&&TaxRegID='+TaxRegIDList;
 
         responseJson := httpget(uri, CorpNum,'');
 
