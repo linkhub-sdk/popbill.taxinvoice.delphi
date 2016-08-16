@@ -302,8 +302,9 @@ type
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
                 // 세금계산서 목록조회
-                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;                
-
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;
+                // 세금계산서 목록조회
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;                
 
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -1205,8 +1206,12 @@ begin
         Result := search(CorpNum,MgtKeyType,DType,SDate,EDate,State,TType,TaxType,LateOnly,TaxRegIDType,TaxRegID,TaxRegIDYN,Page,PerPage,Order,'');
 end;
 
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList;
+begin
+        Result := search(CorpNum,MgtKeyType,DType,SDate,EDate,State,TType,TaxType,LateOnly,TaxRegIDType,TaxRegID,TaxRegIDYN,'',Page,PerPage,Order,'');
+end;
 
-function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String; UserID:String) : TSearchList;
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; QString : string; Page : Integer; PerPage : Integer; Order : String; UserID:String) : TSearchList;
 var
         responseJson : string;
         uri : String;
@@ -1279,9 +1284,14 @@ begin
         if TaxRegID <> '' then
         begin
                 uri := uri + '&&TaxRegID='+TaxRegID;
-        end;        
-        
+        end;
+
         uri := uri + '&&TaxRegIDType=' +TaxRegIDType;
+
+        if QString <> '' Then
+        begin
+                uri := uri + '&&QString=' + QString;
+        end;
 
         responseJson := httpget(uri, CorpNum, UserID);
 
