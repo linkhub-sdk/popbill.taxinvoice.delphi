@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2016-06-30
+* Updated : 2016-12-21
 * Thanks for your interest. 
 *=================================================================================
 *)
@@ -55,6 +55,8 @@ type
         
         TTaxinvoice = class
         public
+                closeDownState       : Integer;
+                closeDownStateDate   : string;
                 writeDate            : string;
                 chargeDirection      : string;
                 issueType            : string;
@@ -144,6 +146,8 @@ type
 
         TTaxinvoiceInfo = class
         public
+                closeDownState       : Integer;
+                closeDownStateDate   : string;
                 ItemKey                 : string;
                 StateCode               : Integer;
                 TaxType                 : string;
@@ -1200,6 +1204,8 @@ end;
 function TTaxinvoiceService.jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
 begin
         result := TTaxinvoiceInfo.Create;
+        result.closeDownState := getJSonInteger(json,'closeDownState');
+        result.closeDownStateDate := getJSonString(json,'closeDownStateDate');
 
         result.ItemKey := getJSonString(json,'itemKey');
         result.taxType := getJSonString(json,'taxType');
@@ -1383,6 +1389,8 @@ begin
                 for i:=0 to Length(jSons)-1 do
                 begin
                         result.list[i] := TTaxinvoiceInfo.Create;
+                        result.list[i].closeDownState := getJSonInteger(jSons[i],'closeDownState');
+                        result.list[i].closeDownStateDate := getJSonString(jSons[i],'closeDownStateDate');
                         result.list[i].ItemKey := getJSonString(jSons[i],'itemKey');
                         result.list[i].taxType := getJSonString(jSons[i],'taxType');
                         result.list[i].writeDate := getJSonString(jSons[i],'writeDate');
@@ -1442,6 +1450,8 @@ var
         i : Integer;
 begin
         result := TTaxinvoice.Create;
+        result.closeDownState := getJSonInteger(json,'closeDownState');
+        result.closeDownStateDate := getJSonString(json,'closeDownStateDate');
 
         result.WriteDate                := getJSonString(json,'writeDate');
         result.ChargeDirection          := getJSonString(json,'chargeDirection');
