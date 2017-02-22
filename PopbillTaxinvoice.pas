@@ -8,8 +8,8 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2016-12-21
-* Thanks for your interest. 
+* Updated : 2017-02-22
+* Thanks for your interest.
 *=================================================================================
 *)
 unit PopbillTaxinvoice;
@@ -242,104 +242,142 @@ type
 
         TTaxinvoiceService = class(TPopbillBaseService)
         private                                  
-                
+
                 function jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
                 function jsonToTTaxinvoice(json : String) : TTaxinvoice;
                 function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : String; emailSubject : String; dealInvoiceMgtKey : String) : String;
-                
+
         public
                 constructor Create(LinkID : String; SecretKey : String);
+
                 //팝빌 세금계산서 연결 url.
-                function GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
+                function GetURL(CorpNum : String; UserID : String; TOGO : String) : String; overload;
+
+                //팝빌 세금계산서 연결 url. overload
+                function GetURL(CorpNum : String; TOGO : String) : String; overload;
 
                 //관리번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
-                
+
+
                 //즉시발행
-                function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TResponse;  
+                function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TResponse;
+
                 //임시저장.
-                function Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
+                function Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
+
                 //수정.
-                function Update(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
+                function Update(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
+
+
+                //발행예정.
+                function Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String) : TResponse; overload;
 
                 //발행예정.
                 function Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse; overload;
+
                 //발행예정.
                 function Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; UserID : String) : TResponse;overload;
 
+
                 //발행예정 취소.
-                function CancelSend(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function CancelSend(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
                 //발행예정 승인.
-                function Accept(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function Accept(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
                 //발행예정 거부.
-                function Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 
+                
                 //발행.
-                function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String) : TResponse;
-                //발행취소.
-                function CancelIssue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String = '') : TResponse;
 
+                //발행취소.
+                function CancelIssue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
+                
                 //역)발행요청.
-                function Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
                 //역)발행요청 거부.
-                function Refuse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function Refuse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
                 //역)발행요청 취소.
-                function CancelRequest(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+                function CancelRequest(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
+
 
                 //삭제.
-                function Delete(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; UserID : String) : TResponse;
+                function Delete(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; UserID : String = '') : TResponse;
 
                 //국세청 전송.
-                function SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; UserID : String) : TResponse;
+                function SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; UserID : String = '') : TResponse;
 
                 //이메일재전송.
-                function SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String) : TResponse;
+                function SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String = '') : TResponse;
+
                 //문자재전송.
-                function SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String) : TResponse;
+                function SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String = '') : TResponse;
+
                 // 팩스 재전송.
-                function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String) : TResponse;
+                function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String = '') : TResponse;
+
 
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
+
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String; UserID:string) : TSearchList; overload;
+
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
+
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;
-                // 세금계산서 목록조회
-                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;                
 
+                // 세금계산서 목록조회
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;
+
+                
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
+
                 //세금계산서 상세정보 확인
                 function GetDetailInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoice;
 
                 //세금계산서 요약정보 및 상태 다량 확인.
                 function GetInfos(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKeyList: Array Of String) : TTaxinvoiceInfoList;
+
                 //문서이력 확인.
                 function GetLogs(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceLogList;
+
                 //파일 첨부.
-                function AttachFile(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; FilePath : String; UserID : String) : TResponse;
+                function AttachFile(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; FilePath : String; UserID : String = '') : TResponse;
+
                 //첨부파일 목록 확인.
                 function GetFiles(CorpNum: String; MgtKeyType : EnumMgtKeyType; MgtKey : String) : TAttachedFileList;
+
                 //첨부파일 삭제.
-                function DeleteFile(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; FileID : String; UserID : String) : TResponse;
+                function DeleteFile(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; FileID : String; UserID : String = '') : TResponse;
+
                 //팝업URL
-                function GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
+                function GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+
                 //인쇄URL
-                function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
+                function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+
                 //공급받는자 인쇄URL
-                function GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
+                function GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+
                 //다량인쇄URL
-                function GetMassPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKeyList: Array Of String; UserID: String) : string;
+                function GetMassPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKeyList: Array Of String; UserID: String = '') : string;
 
                 //Mail URL
-                function GetMailURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String) : string;
+                function GetMailURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
 
                 //회원 등록인증서 만료일 확인.
                 function GetCertificateExpireDate(CorpNum : String) : string;
-                
+
                 //회원별 세금계산서 발행단가 확인.
                 function GetUnitCost(CorpNum : String) : Single;
 
@@ -353,6 +391,7 @@ type
 
                 // 과금정보 확인
                 function GetChargeInfo (CorpNum : String) : TTaxinvoiceChargeInfo; overload;
+
                 // 과금정보 확인
                 function GetChargeInfo (CorpNum : String; UserID:string) : TTaxinvoiceChargeInfo; overload;                
         end;
@@ -411,6 +450,11 @@ begin
         except on E:Exception do
                 raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
         end;
+end;
+
+function TTaxinvoiceService.GetURL(CorpNum : String; TOGO : String) : String;
+begin
+        result := GetURL(CorpNum, '', TOGO);
 end;
 
 function TTaxinvoiceService.GetURL(CorpNum : String; UserID : String; TOGO : String) : String;
@@ -709,7 +753,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
+function TTaxinvoiceService.Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -733,7 +777,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.Update(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Taxinvoice : TTaxinvoice; UserID : String; writeSpecification : boolean = false) : TResponse;
+function TTaxinvoiceService.Update(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -763,6 +807,11 @@ begin
                         result.message := le.Message;
                 end;
         end;
+end;
+
+function TTaxinvoiceService.Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String) : TResponse;
+begin
+    Result := Send(CorpNum,MgtKeyType,MgtKey,Memo,'','');
 end;
 
 function TTaxinvoiceService.Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
@@ -803,7 +852,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.CancelSend(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.CancelSend(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -837,7 +886,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.Accept(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.Accept(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -870,7 +919,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -972,7 +1021,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1004,7 +1053,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.Refuse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.Refuse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1037,7 +1086,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.CancelRequest(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
+function TTaxinvoiceService.CancelRequest(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1070,7 +1119,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; UserID : String) : TResponse;
+function TTaxinvoiceService.SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; UserID : String = '') : TResponse;
 var
         responseJson : string;
 begin
@@ -1100,7 +1149,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String) : TResponse;
+function TTaxinvoiceService.SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1134,7 +1183,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String) : TResponse;
+function TTaxinvoiceService.SendSMS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; Contents : String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1167,7 +1216,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String) : TResponse;
+function TTaxinvoiceService.SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1679,7 +1728,7 @@ begin
 end;
 
 
-function TTaxinvoiceService.Delete(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; UserID : String) : TResponse;
+function TTaxinvoiceService.Delete(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; UserID : String = '') : TResponse;
 var
         responseJson : string;
 begin
@@ -1709,7 +1758,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.AttachFile(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; FilePath : String; UserID : String) : TResponse;
+function TTaxinvoiceService.AttachFile(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; FilePath : String; UserID : String = '') : TResponse;
 var
         responseJson : string;
         fileName : string;
@@ -1774,7 +1823,7 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.DeleteFile(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; FileID : String; UserID : String) : TResponse;
+function TTaxinvoiceService.DeleteFile(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; FileID : String; UserID : String = '') : TResponse;
 var
         responseJson : string;
 begin
@@ -1811,7 +1860,7 @@ begin
 end;
 
 
-function TTaxinvoiceService.GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String) : string;
+function TTaxinvoiceService.GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
 var
         responseJson : String;
 begin
@@ -1826,7 +1875,7 @@ begin
         result := getJSonString(responseJson,'url');
 end;
 
-function TTaxinvoiceService.GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String) : string;
+function TTaxinvoiceService.GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
 var
         responseJson : String;
 begin
@@ -1841,7 +1890,7 @@ begin
         result := getJSonString(responseJson,'url');
 end;
 
-function TTaxinvoiceService.GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String) : string;
+function TTaxinvoiceService.GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
 var
         responseJson : String;
 begin
@@ -1856,7 +1905,7 @@ begin
         result := getJSonString(responseJson,'url');
 end;
 
-function TTaxinvoiceService.GetMassPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKeyList: Array Of String; UserID: String) : string;
+function TTaxinvoiceService.GetMassPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKeyList: Array Of String; UserID: String = '') : string;
 var
         requestJson,responseJson:string;
         i : integer;
@@ -1885,7 +1934,7 @@ begin
 
 end;
 
-function TTaxinvoiceService.GetMailURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String) : string;
+function TTaxinvoiceService.GetMailURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
 var
         responseJson : String;
 begin
