@@ -485,7 +485,7 @@ begin
                                 result := false;
                                 Exit;
                         end;
-                        Raise E;
+                        Raise EPopbillException.Create(-99999999, E.Message);
                 end;
         end;
         taxinvoiceInfo := jsonToTTaxinvoiceInfo(responseJson);
