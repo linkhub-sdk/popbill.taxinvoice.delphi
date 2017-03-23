@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2017-02-22
+* Updated : 2017-03-23
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -170,6 +170,7 @@ type
                 SupplyCostTotal         : string;
                 TaxTotal                : string;
                 lateIssueYN             : boolean;
+                interOPYN               : boolean;                
                 IssueDT                 : string;
                 PreIssueDT              : string;
                 StateDT                 : string;
@@ -1278,6 +1279,7 @@ begin
         result.modifyCode := IntToStr(getJSonInteger(json,'modifyCode'));
         result.issueType := getJSonString(json,'issueType');
 
+        result.interOPYN := getJsonBoolean(json,'interOPYN');        
         result.lateIssueYN := getJsonBoolean(json,'lateIssueYN');
         result.issueDT := getJSonString(json,'issueDT');
         result.preIssueDT := getJSonString(json,'preIssueDT');
@@ -1466,6 +1468,7 @@ begin
                         result.list[i].modifyCode := getJSonString(jSons[i],'modifyCode');
                         result.list[i].issueType := getJSonString(jSons[i],'issueType');
 
+                        result.list[i].interOPYN := getJsonBoolean(jSons[i],'interOPYN');
                         result.list[i].lateIssueYN := getJsonBoolean(jSons[i],'lateIssueYN');
                         result.list[i].issueDT := getJSonString(jSons[i],'issueDT');
                         result.list[i].preIssueDT := getJSonString(jSons[i],'preIssueDT');
