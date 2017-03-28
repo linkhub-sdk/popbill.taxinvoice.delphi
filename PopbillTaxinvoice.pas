@@ -339,6 +339,9 @@ type
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; UserID : String) : TSearchList; overload;
 
+
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String) : TSearchList; overload;
+
                 
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
@@ -1342,6 +1345,11 @@ begin
 end;
 
 function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; QString : string; Page : Integer; PerPage : Integer; Order : String; UserID:String) : TSearchList;
+begin
+        Result := search(CorpNum,MgtKeyType,DType,SDate,EDate,State,TType,TaxType,LateOnly,TaxRegIDType,TaxRegID,TaxRegIDYN,QString,Page,PerPage,Order,'',UserID);
+end;
+
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; QString : string; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID:String) : TSearchList;
 var
         responseJson : string;
         uri : String;
@@ -1421,6 +1429,10 @@ begin
         if QString <> '' Then
         begin
                 uri := uri + '&&QString=' + UrlEncodeUTF8(QString);
+        end;
+        if InterOPYN <> '' Then
+        begin
+                uri := uri + '&&InterOPYN=' + InterOPYN;
         end;
 
         responseJson := httpget(uri, CorpNum, UserID);
