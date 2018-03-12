@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2017-12-05
+* Updated : 2018-03-12
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -398,7 +398,12 @@ type
                 function GetChargeInfo (CorpNum : String) : TTaxinvoiceChargeInfo; overload;
 
                 // 과금정보 확인
-                function GetChargeInfo (CorpNum : String; UserID:string) : TTaxinvoiceChargeInfo; overload;                
+                function GetChargeInfo (CorpNum : String; UserID:string) : TTaxinvoiceChargeInfo; overload;
+                
+                // 파트너 관리번호 할당
+                function AssignMgtKey(CorpNum : String; MgtKeyType: EnumMgtKeyType; ItemKey : String; MgtKey : String; UserID: String = '') : TResponse;
+
+
         end;
 
 implementation
@@ -2103,5 +2108,39 @@ begin
         end;
 
 end;
+
+function TTaxinvoiceService.AssignMgtKey(CorpNum : String; MgtKeyType:EnumMgtKeyType; ItemKey : String; MgtKey : String; UserID : String = '') : TResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+        if MgtKey = '' then
+        begin
+                result.code := -99999999;
+                result.message := '관리번호가 입력되지 않았습니다.';
+                Exit;
+        end;
+
+        try
+                requestJson := 'MgtKey='+EscapeString(MgtKey);
+
+                responseJson := httppost('/Taxinvoice/'+ItemKey+'/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)),
+                                        CorpNum,UserID,requestJson,'','application/x-www-form-urlencoded; charset=utf-8');
+
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                        end;
+                        
+                        result.code := le.code;
+                        result.message := le.Message;
+                end;
+        end;
+end;
+
 //End Of Unit.
 end.
