@@ -2135,7 +2135,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
