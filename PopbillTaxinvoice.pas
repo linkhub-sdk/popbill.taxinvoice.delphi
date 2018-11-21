@@ -1071,15 +1071,15 @@ begin
         end;
 end;
 
-function TTaxinvoiceService.RegistRequest(CorpNum : String; Taxinvoice : TTaxinvoice; Memo : String=''; UserID : String = '') : TResponse;
+function TTaxinvoiceService.RegistRequest(CorpNum : String; Taxinvoice : TTaxinvoice; memo : String=''; UserID : String = '') : TResponse;
 var
         requestJson : string;
         responseJson : string;
 begin
 
         try
-                requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
-                responseJson := httppost('/Taxinvoice/',CorpNum,UserID,requestJson,'REQUEST');
+                requestJson := TTaxinvoiceTojson(Taxinvoice,false,false,memo,'','');
+                responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson,'REQUEST');
 
                 result.code := getJSonInteger(responseJson,'code');
                 result.message := getJSonString(responseJson,'message');
