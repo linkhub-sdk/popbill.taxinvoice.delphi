@@ -251,7 +251,7 @@ type
         TEmailConfigList = Array of TEmailConfig;
 
         TTaxinvoiceService = class(TPopbillBaseService)
-        private                                  
+        private
 
                 function jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
                 function jsonToTTaxinvoice(json : String) : TTaxinvoice;
@@ -265,6 +265,12 @@ type
 
                 //팝빌 세금계산서 연결 url. overload
                 function GetURL(CorpNum : String; TOGO : String) : String; overload;
+
+                //팝빌 인감 및 첨부문서 등록 URL
+                function GetSealURL(CorpNum : String; UserID : String) : String;
+
+                //공인인증서 등록 URL
+                function GetTaxCertURL(CorpNum : String; UserID : String) : String;
 
                 //관리번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
@@ -299,14 +305,16 @@ type
                 //발행예정 거부.
                 function Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 
-                
+
                 //발행.
                 function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String = '') : TResponse;
 
                 //발행취소.
                 function CancelIssue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 
-                
+                //역)즉시요청.
+                function RegistRequest(CorpNum : String; Taxinvoice : TTaxinvoice; Memo : String =''; UserID : String = '') : TResponse;
+
                 //역)발행요청.
                 function Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
 
@@ -352,7 +360,7 @@ type
 
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String) : TSearchList; overload;
 
-                
+
                 //세금계산서 요약정보 및 상태정보 확인.
                 function GetInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceInfo;
 
@@ -488,6 +496,22 @@ var
         responseJson : String;
 begin
         responseJson := httpget('/Taxinvoice/?TG='+ TOGO,CorpNum,UserID);
+        result := getJSonString(responseJson,'url');
+end;
+
+function TTaxinvoiceService.GetSealURL(CorpNum : String; UserID : String) : String;
+var
+        responseJson : String;
+begin
+        responseJson := httpget('/?TG=SEAL', CorpNum, UserID);
+        result := getJSonString(responseJson,'url');
+end;
+
+function TTaxinvoiceService.GetTaxCertURL(CorpNum : String; UserID : String) : String;
+var
+        responseJson : String;
+begin
+        responseJson := httpget('/?TG=CERT', CorpNum, UserID);
         result := getJSonString(responseJson,'url');
 end;
 
@@ -763,7 +787,7 @@ begin
         try
                 requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,forceIssue,memo,emailSubject,dealInvoiceMgtKey);
                 responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson,'ISSUE');
-                
+
                 result.code := getJSonInteger(responseJson,'code');
                 result.message := getJSonString(responseJson,'message');
         except
@@ -772,7 +796,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -796,7 +820,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -828,7 +852,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -871,7 +895,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -889,7 +913,7 @@ begin
                 result.message := '관리번호가 입력되지 않았습니다.';
                 Exit;
         end;
-        
+
         try
                 requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
 
@@ -904,7 +928,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -938,7 +962,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -971,7 +995,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1007,7 +1031,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1040,7 +1064,32 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
+                        result.code := le.code;
+                        result.message := le.Message;
+                end;
+        end;
+end;
+
+function TTaxinvoiceService.RegistRequest(CorpNum : String; Taxinvoice : TTaxinvoice; Memo : String=''; UserID : String = '') : TResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+
+        try
+                requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
+                responseJson := httppost('/Taxinvoice/',CorpNum,UserID,requestJson,'REQUEST');
+
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                        end;
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1072,7 +1121,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1104,7 +1153,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1138,7 +1187,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1155,7 +1204,7 @@ begin
                 result.message := '관리번호가 입력되지 않았습니다.';
                 Exit;
         end;
-        
+
         try
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,'','NTS');
@@ -1168,7 +1217,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1186,7 +1235,7 @@ begin
                 result.message := '관리번호가 입력되지 않았습니다.';
                 Exit;
         end;
-        
+
         try
                 requestJson := '{"receiver":"'+EscapeString(Receiver)+'"}';
 
@@ -1201,7 +1250,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1235,7 +1284,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
@@ -1253,7 +1302,7 @@ begin
                 result.message := '관리번호가 입력되지 않았습니다.';
                 Exit;
         end;
-        
+
         try
                 requestJson := '{"sender":"'+EscapeString(Sender)+'","receiver":"'+EscapeString(Receiver)+'"}';
 
@@ -1268,7 +1317,7 @@ begin
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-                        
+
                         result.code := le.code;
                         result.message := le.Message;
                 end;
