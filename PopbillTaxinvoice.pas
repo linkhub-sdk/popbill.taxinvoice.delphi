@@ -8,9 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2018-03-12
-* Contributor : Kim Eunhye (code@linkhub.co.kr)
-* Updated : 2018-09-18
+* Updated : 2019-02-28
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -25,6 +23,13 @@ uses
 type
 
         EnumMgtKeyType = (SELL,BUY,TRUSTEE);
+        
+        TIssueResponse = Record
+                code : LongInt;
+                message : string;
+                ntsConfirmNum : string;
+        end;
+                
         TTaxinvoiceChargeInfo = class
         public
                 unitCost : string;
@@ -275,9 +280,8 @@ type
                 //관리번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
 
-
                 //즉시발행
-                function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TResponse;
+                function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TIssueResponse;
 
                 //임시저장.
                 function Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
@@ -307,7 +311,7 @@ type
 
 
                 //발행.
-                function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String = '') : TResponse;
+                function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String = '') : TIssueResponse;
 
                 //발행취소.
                 function CancelIssue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
@@ -384,6 +388,9 @@ type
 
                 //팝업URL
                 function GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+                
+                //팝업URL
+                function GetViewURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;                
 
                 //인쇄URL
                 function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
@@ -779,7 +786,7 @@ begin
         result := requestJson;
 end;
 
-function TTaxinvoiceService.RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserId : String = '') : TResponse;
+function TTaxinvoiceService.RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserId : String = '') : TIssueResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -790,6 +797,8 @@ begin
 
                 result.code := getJSonInteger(responseJson,'code');
                 result.message := getJSonString(responseJson,'message');
+                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');
+                
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -1003,7 +1012,7 @@ begin
 
 
 end;
-function TTaxinvoiceService.Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String) : TResponse;
+function TTaxinvoiceService.Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String) : TIssueResponse;
 var
         requestJson : string;
         responseJson : string;
@@ -1025,6 +1034,7 @@ begin
 
                 result.code := getJSonInteger(responseJson,'code');
                 result.message := getJSonString(responseJson,'message');
+                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');                
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -1980,6 +1990,21 @@ begin
         end;
         
         responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=POPUP',CorpNum,UserID);
+
+        result := getJSonString(responseJson,'url');
+end;
+
+function TTaxinvoiceService.GetViewURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
+var
+        responseJson : String;
+begin
+        if MgtKey = '' then
+        begin
+                raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
+                Exit;
+        end;
+        
+        responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=VIEW',CorpNum,UserID);
 
         result := getJSonString(responseJson,'url');
 end;
