@@ -257,19 +257,12 @@ type
 
         TTaxinvoiceService = class(TPopbillBaseService)
         private
-                m_LastErrCode : LongInt;
-                m_LastErrMessage : String;
-                procedure initLastError();
                 
                 function jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
                 function jsonToTTaxinvoice(json : String) : TTaxinvoice;
                 function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : String; emailSubject : String; dealInvoiceMgtKey : String) : String;
         public
                 constructor Create(LinkID : String; SecretKey : String);
-
-                property LastErrCode : LongInt read m_LastErrCode;
-                property LastErrMessage : String read m_LastErrMessage;                
-
 
                 //팝빌 세금계산서 연결 url.
                 function GetURL(CorpNum : String; UserID : String; TOGO : String) : String; overload;
@@ -477,11 +470,6 @@ begin
        AddScope('110');
 end;
 
-procedure TTaxinvoiceService.initLastError();
-begin
-        m_LastErrCode := 0;
-        m_LastErrMessage := '';
-end;
 
 function TTaxinvoiceService.GetChargeInfo (CorpNum : string) : TTaxinvoiceChargeInfo;
 begin
@@ -492,7 +480,6 @@ function TTaxinvoiceService.GetChargeInfo (CorpNum : string; UserID :string) : T
 var
         responseJson : String;
 begin
-        initLastError();
         
         try
                 responseJson := httpget('/Taxinvoice/ChargeInfo',CorpNum,UserID);
@@ -504,10 +491,6 @@ begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
                         end;
-                        result := TTaxinvoiceChargeInfo.Create;
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
         end;
 
@@ -522,16 +505,15 @@ begin
                 if FIsThrowException then
                 begin
                         raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
-                        exit;                
+                        exit;
                 end
                 else
                 begin
                         result := TTaxinvoiceChargeInfo.Create;
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '결과처리 실패.[Malformed Json]';
-                        exit;                         
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('결과처리 실패.[Malformed Json]');
+                        exit;
                 end;
-
         end;
 end;
 
@@ -545,7 +527,6 @@ function TTaxinvoiceService.GetURL(CorpNum : String; UserID : String; TOGO : Str
 var
         responseJson : String;
 begin
-        initLastError();
 
         try
                 responseJson := httpget('/Taxinvoice/?TG='+ TOGO,CorpNum,UserID);
@@ -557,10 +538,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
 
         end;
@@ -570,8 +547,6 @@ function TTaxinvoiceService.GetSealURL(CorpNum : String; UserID : String) : Stri
 var
         responseJson : String;
 begin
-        initLastError();
-        
         try
                 responseJson := httpget('/?TG=SEAL', CorpNum, UserID);
                 result := getJSonString(responseJson,'url');
@@ -582,10 +557,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
         end;
 end;
@@ -594,8 +565,6 @@ function TTaxinvoiceService.GetTaxCertURL(CorpNum : String; UserID : String) : S
 var
         responseJson : String;
 begin
-        initLastError();
-
         try
                 responseJson := httpget('/?TG=CERT', CorpNum, UserID);
                 result := getJSonString(responseJson,'url');
@@ -606,10 +575,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
         end;
 end;
@@ -619,8 +584,6 @@ var
         responseJson : string;
         taxinvoiceInfo : TTaxinvoiceInfo;
 begin
-        initLastError();
-
         if MgtKey = '' then
         begin
                 if FIsThrowException then
@@ -628,35 +591,29 @@ begin
                         raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
                         Exit;                
                 end;
-                m_LastErrCode := -99999999;
-                m_LastErrMessage := '관리번호가 입력되지 않았습니다.'; 
+                result := false;
+                setLastErrCode(-99999999);
+                setLastErrMessage('관리번호가 입력되지 않았습니다.'); 
                 exit;
         end;
 
         try
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey , CorpNum,'');
+                taxinvoiceInfo := jsonToTTaxinvoiceInfo(responseJson);
+                result:= taxinvoiceInfo.ItemKey <> '';
+                
         except
                 on E : EPopbillException do
                 begin
-                        if E.code = -11000005 then begin
+                        if E.code = -11000005 then
+                        begin
                                 result := false;
                                 Exit;
                         end;
-
-                        if FIsThrowException then
-                        begin
-                                raise EPopbillException.Create(-99999999, E.Message);
-                                exit;
-                        end;
-                        m_LastErrCode := E.code;
-                        m_LastErrMessage := E.message;
-                        exit; 
                 end;
         end;
-        
-        taxinvoiceInfo := jsonToTTaxinvoiceInfo(responseJson);
 
-        result:= taxinvoiceInfo.ItemKey <> '';
+
 end;
 
 function UrlEncodeUTF8(stInput : widestring) : string;
@@ -900,28 +857,39 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
         
         try
                 requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,forceIssue,memo,emailSubject,dealInvoiceMgtKey);
                 responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson,'ISSUE');
 
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
-                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');
-                              
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+                result.ntsConfirmNum := '';
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');                
+        end;
+
 end;
 
 function TTaxinvoiceService.Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
@@ -929,26 +897,35 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
-
         try
                 requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,false,'','','');
                 responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson);
 
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.Message := le.Message;
                         end;
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.Update(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
@@ -956,8 +933,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
-
         if MgtKey = '' then
         begin
                 if FIsThrowException then
@@ -978,22 +953,31 @@ begin
                 requestJson := TTaxinvoiceTojson(Taxinvoice,writeSpecification,false,'','','');
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'PATCH');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.Send(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String) : TResponse;
@@ -1011,7 +995,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1034,22 +1017,32 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'SEND');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;
+
 end;
 
 function TTaxinvoiceService.CancelSend(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
@@ -1057,7 +1050,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1080,22 +1072,31 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                 CorpNum,UserID,requestJson,'CANCELSEND');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 
 end;
 
@@ -1104,7 +1105,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1119,7 +1119,6 @@ begin
                         result.message := '관리번호가 입력되지 않았습니다.';
                         Exit;                
                 end;
-
         end;
 
         try
@@ -1127,22 +1126,32 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'ACCEPT');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
@@ -1150,7 +1159,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1172,22 +1180,32 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'DENY');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 
 
 end;
@@ -1197,7 +1215,6 @@ var
         responseJson : string;
         forIssue : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1210,6 +1227,7 @@ begin
                 begin
                         result.code := -99999999;
                         result.message := '관리번호가 입력되지 않았습니다.';
+                        result.ntsConfirmNum := '';
                         Exit;                
                 end;
         end;
@@ -1220,21 +1238,35 @@ begin
                 requestJson := '{"memo":"'+EscapeString(Memo)+'","emailSubject":"'+EscapeString(EmailSubject)+'","forceIssue":'+forIssue+'}';
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,CorpNum,UserID,requestJson,'ISSUE');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
-                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');                
+                               
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
+                                result.ntsConfirmNum := '';
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+                result.ntsConfirmNum := '';
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+                result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');                                
+        end;         
 end;
 
 function TTaxinvoiceService.CancelIssue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String) : TResponse;
@@ -1242,7 +1274,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1264,22 +1295,31 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'CANCELISSUE');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.RegistRequest(CorpNum : String; Taxinvoice : TTaxinvoice; memo : String=''; UserID : String = '') : TResponse;
@@ -1287,27 +1327,37 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         try
                 requestJson := TTaxinvoiceTojson(Taxinvoice,false,false,memo,'','');
                 responseJson := httppost('/Taxinvoice',CorpNum,UserID,requestJson,'REQUEST');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;
+                
 end;
 
 function TTaxinvoiceService.Request(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
@@ -1315,7 +1365,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1336,22 +1385,33 @@ begin
                 requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'REQUEST');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;
+                
 end;
 
 function TTaxinvoiceService.Refuse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
@@ -1359,7 +1419,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1380,22 +1439,31 @@ begin
                 requestJson := '{"memo":"'+EscapeString(Memo)+'"}';
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'REFUSE');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;        
 
 end;
 
@@ -1404,7 +1472,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1426,29 +1493,38 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'CANCELREQUEST');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;        
+
 end;
 
 function TTaxinvoiceService.SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; UserID : String = '') : TResponse;
 var
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1468,22 +1544,32 @@ begin
         try
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,'','NTS');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
+                
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;        
 end;
 
 function TTaxinvoiceService.SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String = '') : TResponse;
@@ -1491,7 +1577,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1513,22 +1598,32 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'EMAIL');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;         
 
 end;
 
@@ -1537,7 +1632,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1558,21 +1652,30 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'SMS');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
+        end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
         end;
 end;
 
@@ -1581,7 +1684,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -1603,22 +1705,32 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,
                                         CorpNum,UserID,requestJson,'FAX');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
                         end;
 
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+        end;        
 end;
 
 
@@ -1680,7 +1792,6 @@ function TTaxinvoiceService.getInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType;
 var
         responseJson : string;
 begin
-        initLastError();
         
         if MgtKey = '' then
         begin
@@ -1692,8 +1803,8 @@ begin
                 else
                 begin
                         result := TTaxinvoiceInfo.Create;
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         Exit;
                 end;
 
@@ -1701,7 +1812,6 @@ begin
 
         try
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey , CorpNum,'');
-
                 result := jsonToTTaxinvoiceInfo(responseJson);
         except
                 on le : EPopbillException do begin
@@ -1711,8 +1821,6 @@ begin
                                 exit;
                         end;
                         result := TTaxinvoiceInfo.Create;
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
                         exit;
                 end;
 
@@ -1763,7 +1871,6 @@ var
         i : Integer;
         jsons : ArrayOfString;
 begin
-        initLastError();
 
         if DType = '' then
         begin
@@ -1902,6 +2009,16 @@ begin
                 end;
         end;
 
+        if LastErrCode <> 0 then
+        begin
+                result := TSearchList.Create;
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+                exit;
+        end
+        else
+        begin
+
         result := TSearchList.Create;
 
         result.code             := getJSonInteger(responseJson,'code');
@@ -1981,6 +2098,7 @@ begin
                         end;
                 end;
         end;
+        end;
 end;
 
 
@@ -1989,7 +2107,6 @@ var
         jSons : ArrayOfString;
         i : Integer;
 begin
-        initLastError();
 
         result := TTaxinvoice.Create;
         result.closeDownState           := getJSonInteger(json,'closeDownState');
@@ -2113,8 +2230,8 @@ begin
                                 result := TTaxinvoice.Create;
                                 SetLength(result.AddContactList, 0);
                                 SetLength(result.detailList, 0);
-                                m_LastErrCode := -99999999;
-                                m_LastErrMessage := '결과처리 실패.[Malformed Json]';
+                                setLastErrCode(-99999999);
+                                setLastErrMessage('결과처리 실패.[Malformed Json]');
                                 exit;
                         end;
                 end;
@@ -2146,8 +2263,8 @@ begin
                                 result := TTaxinvoice.Create;
                                 SetLength(result.AddContactList, 0);
                                 SetLength(result.detailList, 0);
-                                m_LastErrCode := -99999999;
-                                m_LastErrMessage := '결과처리 실패.[Malformed Json]';
+                                setLastErrCode(-99999999);
+                                setLastErrMessage('결과처리 실패.[Malformed Json]');
                                 exit;
                         end;
                 end;
@@ -2158,7 +2275,6 @@ function TTaxinvoiceService.GetDetailInfo(CorpNum : string; MgtKeyType:EnumMgtKe
 var
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2169,9 +2285,9 @@ begin
                 end
                 else
                 begin
-                        result := TTaxinvoice.Create;
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        result := TTaxinvoice.Create();
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         Exit;
                 end;
 
@@ -2179,23 +2295,20 @@ begin
 
         try
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '?Detail' , CorpNum,'');
+                result := jsonToTTaxinvoice(responseJson);
         except
                on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
-                                exit;                                
+                        end
+                        else
+                        begin
+                                result := TTaxinvoice.Create();
+                                exit;
                         end;
-                        result := TTaxinvoice.Create;
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
-                        
         end;
-
-        result := jsonToTTaxinvoice(responseJson);
-
 end;
 
 function TTaxinvoiceService.getLogs(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceLogList;
@@ -2204,7 +2317,6 @@ var
         jSons : ArrayOfString;
         i : Integer;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2216,8 +2328,8 @@ begin
                 else
                 begin
                         SetLength(result,0);
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         Exit;
                 end;
         end;
@@ -2225,22 +2337,41 @@ begin
 
         try
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '/Logs', CorpNum, '');
+                
         except
                on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
-                                exit;                                
+                                exit;
+                        end
+                        else
+                        begin
+                                SetLength(result,0);
+                                SetLength(jSons, 0);
+                                exit;
                         end;
-                        SetLength(result,0);                        
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
-                
+                on E:Exception do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                exit;
+                        end;
+                        SetLength(result,0);
+                        SetLength(jSons, 0);
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('결과처리 실패.[Malformed Json]');
+                        exit;
+                end;                
         end;
 
-        try
+        if LastErrCode <> 0 then
+        begin
+                exit;        
+        end
+        else
+        begin
                 jSons := ParseJsonList(responseJson);
                 SetLength(result,Length(jSons));
 
@@ -2257,19 +2388,6 @@ begin
                         result[i].regDT                 := getJSonString(jSons[i],'regDT');
                         result[i].iP                    := getJSonString(jSons[i],'ip');
                 end;
-
-        except
-                on E:Exception do begin
-                        if FIsThrowException then
-                        begin
-                                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
-                                exit;
-                        end;
-                        SetLength(result,0);
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '결과처리 실패.[Malformed Json]';
-                        exit;
-                end;
         end;
         
         
@@ -2282,7 +2400,6 @@ var
         jSons : ArrayOfString;
         i : Integer;
 begin
-        initLastError();
 
         if Length(MgtKeyList) = 0 then
         begin
@@ -2294,8 +2411,8 @@ begin
                 else
                 begin
                         SetLength(result, 0);
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         Exit; 
                 end;
         end;
@@ -2311,30 +2428,20 @@ begin
 
         try
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)),CorpNum,'',requestJson);
+               
         except
                on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
-                                exit;                                
+                                exit;
+                        end
+                        else
+                        begin
+                                SetLength(result, 0);
+                                exit;                        
                         end;
-                        SetLength(result, 0);
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
-        end;
-
-        try
-                jSons := ParseJsonList(responseJson);
-                SetLength(result,Length(jSons));
-
-                for i := 0 to Length(jSons)-1 do
-                begin
-                        result[i] := jsonToTTaxinvoiceInfo(jSons[i]);
-                end;
-
-        except
                 on E:Exception do begin
                         if FIsThrowException then
                         begin
@@ -2344,11 +2451,31 @@ begin
                         else
                         begin
                                 SetLength(result, 0);
-                                m_LastErrCode := -99999999;
-                                m_LastErrMessage := '결과처리 실패.[Malformed Json]';
+                                SetLength(jSons, 0);
+                                setLastErrCode(-99999999);
+                                setLastErrMessage('결과처리 실패.[Malformed Json]');
                                 exit;
                         end;
                 end;
+        end;
+        
+        if LastErrCode <> 0 then
+        begin
+                SetLength(result, 0);
+                SetLength(jSons, 0);
+                setLastErrCode(LastErrCode);
+                setLastErrMessage(LastErrMessage);
+                exit;
+        end
+        else
+        begin
+                jSons := ParseJsonList(responseJson);
+                SetLength(result,Length(jSons));
+
+                for i := 0 to Length(jSons)-1 do
+                begin
+                        result[i] := jsonToTTaxinvoiceInfo(jSons[i]);
+                end; 
         end;
         
 end;
@@ -2358,7 +2485,6 @@ function TTaxinvoiceService.Delete(CorpNum : String; MgtKeyType:EnumMgtKeyType; 
 var
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2378,22 +2504,32 @@ begin
 
         try
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey,CorpNum,UserID,'','DELETE');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
+                                exit;
                         end;
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
 
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;    
 end;
 
 function TTaxinvoiceService.AttachFile(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; FilePath : String; UserID : String = '') : TResponse;
@@ -2402,7 +2538,6 @@ var
         fileName : string;
         fileData : TFileStream;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2425,24 +2560,35 @@ begin
         try
                 try
                         responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '/Files',CorpNum,UserID,'Filedata',fileName,fileData);
-                        result.code := getJSonInteger(responseJson,'code');
-                        result.message := getJSonString(responseJson,'message');
                 except
                         on le : EPopbillException do begin
                                 if FIsThrowException then
                                 begin
                                         raise EPopbillException.Create(le.code,le.Message);
                                         exit;
+                                end
+                                else
+                                begin
+                                        result.code := le.code;
+                                        result.message := le.Message;
+                                        exit;
                                 end;
-
-                                result.code := le.code;
-                                result.message := le.Message;
-                                exit;
                         end;
                 end;
         finally
                 fileData.Free;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;         
 end;
 
 function TTaxinvoiceService.GetFiles(CorpNum: String; MgtKeyType : EnumMgtKeyType; MgtKey : String) : TAttachedFileList;
@@ -2451,7 +2597,6 @@ var
         jSons : ArrayOfString;
         i : integer;
 begin
-        initLastError();
 
         try        
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '/Files',CorpNum,'');
@@ -2462,52 +2607,53 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        SetLength(result,0);
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.Message;
-                        exit;
                 end;
                 
         end;
 
-        try
-                jSons := ParseJsonList(responseJson);
-                SetLength(result,Length(jSons));
+        if LastErrCode <> 0 then
+        begin
+               exit;
+        end
+        else
+        begin
+                try
+                        jSons := ParseJsonList(responseJson);
+                        SetLength(result,Length(jSons));
 
-                for i := 0 to Length(jSons)-1 do
-                begin
-                        result[i] := TAttachedFile.Create;
-                        result[i].SerialNum :=  getJSonInteger(jSons[i],'serialNum');
-                        result[i].AttachedFile := getJSonString(jSons[i],'attachedFile');
-                        result[i].DisplayName := getJSonString(jSons[i],'displayName');
-                        result[i].RegDT := getJSonString(jSons[i],'regDT');
+                        for i := 0 to Length(jSons)-1 do
+                        begin
+                                result[i] := TAttachedFile.Create;
+                                result[i].SerialNum :=  getJSonInteger(jSons[i],'serialNum');
+                                result[i].AttachedFile := getJSonString(jSons[i],'attachedFile');
+                                result[i].DisplayName := getJSonString(jSons[i],'displayName');
+                                result[i].RegDT := getJSonString(jSons[i],'regDT');
 
+                        end;
+                except
+                        on E:Exception do begin
+                                if FIsThrowException then
+                                begin
+                                        raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                        exit;
+                                end
+                                else
+                                begin
+                                        SetLength(result, 0);
+                                        SetLength(jSons, 0);
+                                        setLastErrCode(-99999999);
+                                        setLastErrMessage('결과처리 실패.[Malformed Json]');
+                                end;
+                        end;
                 end;
 
-        except
-                on E:Exception do begin
-                        if FIsThrowException then
-                        begin
-                                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
-                                exit;
-                        end
-                        else
-                        begin
-                                SetLength(result, 0);
-                                SetLength(jSons, 0);
-                                m_LastErrCode := -99999999;
-                                m_LastErrMessage := '결과처리 실패.[Malformed Json]';
-                        end;
-                end; 
-
-        end;
+        end;        
 end;
 
 function TTaxinvoiceService.DeleteFile(CorpNum : String; MgtKeyType:EnumMgtKeyType;  MgtKey: String; FileID : String; UserID : String = '') : TResponse;
 var
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2535,22 +2681,33 @@ begin
 
         try
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '/Files/' + FileID,CorpNum,UserID,'','DELETE');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.message := le.Message;
+                                exit;
                         end;
-                        
-                        result.code := le.code;
-                        result.message := le.Message;
-                        exit;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;
+                
 end;
 
 
@@ -2558,7 +2715,6 @@ function TTaxinvoiceService.GetPopUpURL(CorpNum: string; MgtKeyType : EnumMgtKey
 var
         responseJson : String;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2570,8 +2726,8 @@ begin
                 else
                 begin                
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2587,10 +2743,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
 
         end;
@@ -2600,7 +2752,6 @@ function TTaxinvoiceService.GetViewURL(CorpNum: string; MgtKeyType : EnumMgtKeyT
 var
         responseJson : String;
 begin
-        initLastError();
  
         if MgtKey = '' then
         begin
@@ -2612,8 +2763,8 @@ begin
                 else
                 begin
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2630,10 +2781,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;
 end;
@@ -2642,7 +2789,6 @@ function TTaxinvoiceService.GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKey
 var
         responseJson : String;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2654,8 +2800,8 @@ begin
                 else
                 begin
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2672,10 +2818,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;        
 end;
@@ -2684,7 +2826,6 @@ function TTaxinvoiceService.GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKe
 var
         responseJson : String;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2696,8 +2837,8 @@ begin
                 else
                 begin
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2713,10 +2854,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;                 
                 
@@ -2727,8 +2864,6 @@ var
         requestJson,responseJson:string;
         i : integer;
 begin
-        initLastError();
-
         
         if Length(MgtKeyList) = 0 then
         begin
@@ -2740,8 +2875,8 @@ begin
                 else
                 begin
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2770,10 +2905,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;                
 
@@ -2783,7 +2914,6 @@ function TTaxinvoiceService.GetMailURL(CorpNum: string; MgtKeyType : EnumMgtKeyT
 var
         responseJson : String;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2795,8 +2925,8 @@ begin
                 else
                 begin
                         result := '';
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '관리번호가 입력되지 않았습니다.';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
                         exit;
                 end;
 
@@ -2813,10 +2943,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;         
 end;
@@ -2825,7 +2951,6 @@ function TTaxinvoiceService.GetCertificateExpireDate(CorpNum : String) : string;
 var
         responseJson : string;
 begin
-        initLastError();
 
         try        
                 responseJson := httpget('/Taxinvoice?cfg=CERT',CorpNum,'');
@@ -2838,10 +2963,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        result := '';
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;                
 
@@ -2851,26 +2972,33 @@ function TTaxinvoiceService.GetUnitCost(CorpNum : String) : Single;
 var
         responseJson : string;
 begin
-        initLastError();
         
         try  
                 responseJson := httpget('/Taxinvoice?cfg=UNITCOST',CorpNum,'');
-
-                result := strToFloat(getJSonString( responseJson,'unitCost'));
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
+                        end
+                        else
+                        begin
+                                result := 0.0;
+                                exit;
                         end;
-                        result := 0;
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
-                end;
-        end;                 
 
+                end;
+        end;
+
+        if LastErrCode <> 0 then
+        begin
+                exit;
+        end
+        else
+        begin
+                result := strToFloat(getJSonString( responseJson,'unitCost'));
+        end;
 end;
 
 function TTaxinvoiceService.GetEmailPublicKeys(CorpNum : String) : TEmailPublicKeyList;
@@ -2879,7 +3007,6 @@ var
         jSons : ArrayOfString;
         i : integer;
 begin
-        initLastError();
 
         try 
                 responseJson := httpget('/Taxinvoice/EmailPublicKeys',CorpNum,'');
@@ -2890,10 +3017,6 @@ begin
                                 raise EPopbillException.Create(le.code, le.Message);
                                 exit;
                         end;
-                        SetLength(result, 0); 
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;
 
@@ -2919,8 +3042,8 @@ begin
                                 exit;
                         end;
                         SetLength(result, 0);
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '결과처리 실패.[Malformed Json]';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('결과처리 실패.[Malformed Json]');
                         exit;
                 end;
         end;
@@ -2932,7 +3055,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -2955,9 +3077,6 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey+'/AttachStmt',
                                 CorpNum,'',requestJson,'');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -2971,6 +3090,17 @@ begin
                 end;
         end;
 
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
+
 end;
 
 function TTaxinvoiceService.DetachStatement(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; SubItemCode : Integer; SubMgtKey : String) : TResponse;
@@ -2978,7 +3108,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -3001,9 +3130,6 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey+'/DetachStmt',
                                 CorpNum,'',requestJson,'');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -3015,7 +3141,17 @@ begin
                         result.message := le.Message;
                 end;
         end;
-
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.AssignMgtKey(CorpNum : String; MgtKeyType:EnumMgtKeyType; ItemKey : String; MgtKey : String; UserID : String = '') : TResponse;
@@ -3023,7 +3159,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
 
         if MgtKey = '' then
         begin
@@ -3046,9 +3181,6 @@ begin
 
                 responseJson := httppost('/Taxinvoice/'+ItemKey+'/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)),
                                         CorpNum,UserID,requestJson,'','application/x-www-form-urlencoded; charset=utf-8');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -3060,29 +3192,45 @@ begin
                         result.message := le.Message;
                 end;
         end;
+        
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;        
 end;
 
 function TTaxinvoiceService.CheckCertValidation(CorpNum, UserID: String): TResponse;
 var
         responseJson : string;
 begin
-        initLastError();
 
         try
                 responseJson := httpget('/Taxinvoice/CertCheck',CorpNum, UserID);
 
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
                         begin
                                 raise EPopbillException.Create(le.code,le.Message);
                         end;
-
-                        result.code := le.code;
-                        result.message := le.Message;
                 end;
+        end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
         end;
 end;
 
@@ -3092,7 +3240,6 @@ var
         jSons : ArrayOfString;
         i : integer;
 begin
-        initLastError();
 
         try
                 responseJson := httpget('/Taxinvoice/EmailSendConfig',CorpNum,UserID);
@@ -3103,35 +3250,39 @@ begin
                                 raise EPopbillException.Create(le.code, le.message);
                                 exit;
                         end;
-                        SetLength(result, 0);
-                        m_LastErrCode := le.code;
-                        m_LastErrMessage := le.message;
-                        exit;
                 end;
         end;
 
-        try
-                jSons := ParseJsonList(responseJson);
-                SetLength(result,Length(jSons));
+        if LastErrCode <> 0 then
+        begin
+                exit;
+        end
+        else
+        begin
+                try
+                        jSons := ParseJsonList(responseJson);
+                        SetLength(result,Length(jSons));
 
-                for i := 0 to Length(jSons)-1 do
-                begin
-                        result[i] := TEmailConfig.Create;
-
-                        result[i].EmailType := getJSonString (jSons[i],'emailType');
-                        result[i].SendYN    := getJSonBoolean(jSons[i],'sendYN');
-                end;
-        except
-                on E:Exception do begin
-                        if FIsThrowException then
+                        for i := 0 to Length(jSons)-1 do
                         begin
-                                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                result[i] := TEmailConfig.Create;
+
+                                result[i].EmailType := getJSonString (jSons[i],'emailType');
+                                result[i].SendYN    := getJSonBoolean(jSons[i],'sendYN');
+                        end;
+                except
+                        on E:Exception do begin
+                                if FIsThrowException then
+                                begin
+                                        raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                        exit;
+                                end;
+                                SetLength(result, 0);
+                                SetLength(jSons, 0);
+                                setLastErrCode(-99999999);
+                                setLastErrMessage('결과처리 실패.[Malformed Json]');
                                 exit;
                         end;
-                        SetLength(result, 0);
-                        SetLength(jSons, 0);
-                        m_LastErrCode := -99999999;
-                        m_LastErrMessage := '결과처리 실패.[Malformed Json]';
                 end;
         end;
 end;
@@ -3147,7 +3298,6 @@ var
         requestJson : string;
         responseJson : string;
 begin
-        initLastError();
         
         if Trim(EmailType) = '' then
         begin
@@ -3167,9 +3317,6 @@ begin
 
                 responseJson := httppost('/Taxinvoice/EmailSendConfig?EmailType=' + EmailType + '&SendYN=' + BoolToStr(SendYN),
                                         CorpNum,UserID,requestJson,'');
-
-                result.code := getJSonInteger(responseJson,'code');
-                result.message := getJSonString(responseJson,'message');
         except
                 on le : EPopbillException do begin
                         if FIsThrowException then
@@ -3181,6 +3328,17 @@ begin
                         result.message := le.Message;
                 end;
         end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');                
+        end;         
 end;
 
 //End Of Unit.
