@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2019-03-05
+* Updated : 2019-03-18
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -2134,6 +2134,7 @@ begin
         result.invoicerSMSSendYN        := getJSonBoolean(json,'invoicerSMSSendYN');
 
         result.invoiceeCorpNum          := getJSonString(json,'invoiceeCorpNum');
+        result.invoiceeType             := getJSonString(json,'invoiceeType');
         result.invoiceeMgtKey           := getJSonString(json,'invoiceeMgtKey');
         result.invoiceeTaxRegID         := getJSonString(json,'invoiceeTaxRegID');
         result.invoiceeCorpName         := getJSonString(json,'invoiceeCorpName');
