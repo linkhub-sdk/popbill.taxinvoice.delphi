@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2019-03-18
+* Updated : 2019-05-03
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -307,7 +307,6 @@ type
 
                 //발행예정 거부.
                 function Deny(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; UserID : String = '') : TResponse;
-
 
                 //발행.
                 function Issue(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; Memo : String; EmailSubject : String; ForceIssue : Boolean; UserID : String = '') : TIssueResponse;
