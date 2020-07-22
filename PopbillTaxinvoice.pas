@@ -342,7 +342,6 @@ type
                 // 팩스 재전송.
                 function SendFAX(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Sender:String; Receiver:String; UserID : String = '') : TResponse;
 
-
                 // 세금계산서 목록조회
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String;LateOnly : String; Page : Integer; PerPage : Integer; Order : String) : TSearchList; overload;
 
@@ -363,6 +362,8 @@ type
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String) : TSearchList; overload;
 
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String; RegType : Array Of String) : TSearchList; overload;
+
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String; RegType : Array Of String; CloseDownState : Array Of String; MgtKey : String) : TSearchList; overload;
 
 
                 //세금계산서 요약정보 및 상태정보 확인.
@@ -1867,8 +1868,14 @@ begin
         SetLength(emptyList, 0);
         Result := search(CorpNum, MgtKeyType, DType, SDate, EDate, State, TType, TaxType, IssueType , LateOnly, TaxRegIDType, TaxRegID, TaxRegIDYN, QString, Page, PerPage, Order, InterOPYN, UserID, emptyList);
 end;
-
 function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; QString : string; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID:String; RegType : Array Of String) : TSearchList;
+var
+        emptyList : Array of String;
+begin
+        SetLength(emptyList, 0);
+        Result := search(CorpNum, MgtKeyType, DType, SDate, EDate, State, TType, TaxType, IssueType , LateOnly, TaxRegIDType, TaxRegID, TaxRegIDYN, QString, Page, PerPage, Order, InterOPYN, UserID, RegType, emptyList, '');
+end;
+function TTaxinvoiceService.search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType :String; TaxRegID: String; TaxRegIDYN : string; QString : string; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID:String; RegType : Array Of String; CloseDownState : Array Of String; MgtKey : String) : TSearchList;
 var
         responseJson : string;
         uri : String;
@@ -1877,6 +1884,7 @@ var
         TaxTypeList : String;
         IssueTypeList : String;
         RegTypeList : String;
+        CloseDownStateList : String;
         i : Integer;
         jsons : ArrayOfString;
 begin
@@ -1996,6 +2004,20 @@ begin
 
                 uri := uri + '&&RegType=' + RegTypeList;
         end;
+
+        if Length(CloseDownState) > 0 Then
+        begin
+                for i := 0 to High(CloseDownState) do
+                begin
+                        if CloseDownState[i] <> '' Then
+                        CloseDownStateList := CloseDownStateList + CloseDownState[i];
+
+                        if i <> High(CloseDownState) then
+                        CloseDownStateList := CloseDownStateList + ',';
+                end;
+
+                uri := uri + '&&CloseDownState=' + CloseDownStateList;
+        end;
                 
         if TaxRegIDYN <> '' then
         begin
@@ -2012,6 +2034,12 @@ begin
         begin
                 uri := uri + '&&QString=' + UrlEncodeUTF8(QString);
         end;
+
+        if MgtKey <> '' Then
+        begin
+                uri := uri + '&&MgtKey=' + UrlEncodeUTF8(MgtKey);
+        end;
+
         if InterOPYN <> '' Then
         begin
                 uri := uri + '&&InterOPYN=' + InterOPYN;
