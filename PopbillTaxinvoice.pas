@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2019-11-28
+* Updated : 2020-07-22
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -69,6 +69,7 @@ type
                 issueType            : string;
                 issueTiming          : string;
                 taxType              : string;
+                issueTiming          : string;
 
                 invoicerCorpNum      : string;
                 invoicerMgtKey       : string;
@@ -362,7 +363,7 @@ type
 
                 function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String) : TSearchList; overload;
 
-                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String; RegType : Array Of String) : TSearchList; overload;                
+                function search(CorpNum : string; MgtKeyType:EnumMgtKeyType; DType:String; SDate: String; EDate:String; State : Array Of String; TType:Array Of String; TaxType : Array Of String; IssueType : Array Of String; LateOnly : String; TaxRegIDType : String; TaxRegID: String; TaxRegIDYN : string; QString : String; Page : Integer; PerPage : Integer; Order : String; InterOPYN : String; UserID : String; RegType : Array Of String) : TSearchList; overload;
 
 
                 //세금계산서 요약정보 및 상태정보 확인.
@@ -710,7 +711,6 @@ begin
 
         requestJson := requestJson + '"chargeDirection":"'+ EscapeString(Taxinvoice.ChargeDirection) +'",';
         requestJson := requestJson + '"issueType":"'+ EscapeString(Taxinvoice.IssueType) +'",';
-        requestJson := requestJson + '"issueTiming":"'+ EscapeString(Taxinvoice.IssueTiming) +'",';
         requestJson := requestJson + '"taxType":"'+ EscapeString(Taxinvoice.TaxType) +'",';
         requestJson := requestJson + '"invoicerCorpNum":"'+ EscapeString(Taxinvoice.InvoicerCorpNum) +'",';
         requestJson := requestJson + '"invoicerMgtKey":"'+ EscapeString(Taxinvoice.InvoicerMgtKey) +'",';
@@ -2140,7 +2140,6 @@ begin
         result.WriteDate                := getJSonString(json,'writeDate');
         result.ChargeDirection          := getJSonString(json,'chargeDirection');
         result.IssueType                := getJSonString(json,'issueType');
-        result.IssueTiming              := getJSonString(json,'issueTiming');
         result.TaxType                  := getJSonString(json,'taxType');
 
         result.invoicerCorpNum          := getJSonString(json,'invoicerCorpNum');
