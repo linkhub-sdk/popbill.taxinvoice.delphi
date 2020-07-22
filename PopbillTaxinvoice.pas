@@ -69,7 +69,6 @@ type
                 issueType            : string;
                 issueTiming          : string;
                 taxType              : string;
-                issueTiming          : string;
 
                 invoicerCorpNum      : string;
                 invoicerMgtKey       : string;
