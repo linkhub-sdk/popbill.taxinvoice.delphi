@@ -276,7 +276,7 @@ type
                 //공인인증서 등록 URL
                 function GetTaxCertURL(CorpNum : String; UserID : String) : String;
 
-                //관리번호 사용여부 확인
+                //문서번호 사용여부 확인
                 function CheckMgtKeyInUse(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String) : boolean;
 
                 //즉시발행
@@ -395,6 +395,9 @@ type
 
                 //인쇄URL
                 function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+
+                // PDF 다운로드 URL
+                function GetPDFURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
 
                 //공급받는자 인쇄URL
                 function GetEPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
@@ -2835,6 +2838,43 @@ begin
                         end;
                 end;
         end;
+end;
+
+function TTaxinvoiceService.GetPDFURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
+var
+        responseJson : String;
+begin
+
+        if MgtKey = '' then
+        begin
+                if FIsThrowException then
+                begin
+                        raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
+                        Exit;
+                end
+                else
+                begin
+                        result := '';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
+                        exit;
+                end;
+
+        end;
+
+        try
+                responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=PDF',CorpNum,UserID);
+
+                result := getJSonString(responseJson,'url');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code, le.Message);
+                                exit;
+                        end;
+                end;
+        end;        
 end;
 
 function TTaxinvoiceService.GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
