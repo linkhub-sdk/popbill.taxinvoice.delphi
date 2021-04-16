@@ -8,7 +8,7 @@
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhub.co.kr)
-* Updated : 2020-07-22
+* Updated : 2021-04-16
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -332,6 +332,9 @@ type
 
                 //국세청 전송.
                 function SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; UserID : String = '') : TResponse;
+
+                // 발행즉시전송 설정여부 확인
+                function GetSendToNTSConfig(CorpNum: string; UserID: String = '') : Boolean;
 
                 //이메일재전송.
                 function SendEmail(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey :String; Receiver:String; UserID : String = '') : TResponse;
@@ -1523,6 +1526,27 @@ begin
                 result.message := getJSonString(responseJson,'message');
         end;        
 
+end;
+
+function TTaxinvoiceService.GetSendToNTSConfig(CorpNum: string; UserID : String = '') : Boolean;
+var
+        responseJson : string;
+begin
+
+
+        try
+                responseJson := httpget('/Taxinvoice/SendToNTSConfig',CorpNum,UserID);
+                result := getJSonBoolean(responseJson,'sendToNTS');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code, le.Message);
+                                exit;
+                        end;
+                end;
+
+        end;
 end;
 
 function TTaxinvoiceService.SendToNTS(CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey : String; UserID : String = '') : TResponse;
