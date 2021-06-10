@@ -399,6 +399,9 @@ type
                 //인쇄URL
                 function GetPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
 
+                //(구)양식 인쇄URL
+                function GetOldPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
+
                 // PDF 다운로드 URL
                 function GetPDFURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String; UserID: String = '') : string;
 
@@ -2925,6 +2928,43 @@ begin
 
         try
                 responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=PRINT',CorpNum,UserID);
+
+                result := getJSonString(responseJson,'url');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code, le.Message);
+                                exit;
+                        end;
+                end;
+        end;        
+end;
+
+function TTaxinvoiceService.GetOldPrintURL(CorpNum: string; MgtKeyType : EnumMgtKeyType; MgtKey : String;UserID : String = '') : string;
+var
+        responseJson : String;
+begin
+
+        if MgtKey = '' then
+        begin
+                if FIsThrowException then
+                begin
+                        raise EPopbillException.Create(-99999999,'관리번호가 입력되지 않았습니다.');
+                        Exit;
+                end
+                else
+                begin
+                        result := '';
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('관리번호가 입력되지 않았습니다.');
+                        exit;
+                end;
+
+        end;
+
+        try
+                responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey +'?TG=PRINTOLD',CorpNum,UserID);
 
                 result := getJSonString(responseJson,'url');
         except
