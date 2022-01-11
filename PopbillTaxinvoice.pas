@@ -7,7 +7,7 @@
 * http://www.popbill.com
 * Author : Kim Seongjun (pallet027@gmail.com)
 * Written : 2015-06-10
-* Contributor : Jeong Yohan (code@linkhub.co.kr)
+* Contributor : Jeong Yohan (code@linkhubcorp.com)
 * Updated : 2021-06-15
 * Thanks for your interest.
 *=================================================================================
@@ -273,7 +273,7 @@ type
                 //팝빌 인감 및 첨부문서 등록 URL
                 function GetSealURL(CorpNum : String; UserID : String) : String;
 
-                //공인인증서 등록 URL
+                //공동인증서 등록 URL
                 function GetTaxCertURL(CorpNum : String; UserID : String) : String;
 
                 //문서번호 사용여부 확인
@@ -438,7 +438,7 @@ type
                 // 문서번호 할당
                 function AssignMgtKey(CorpNum : String; MgtKeyType: EnumMgtKeyType; ItemKey : String; MgtKey : String; UserID: String = '') : TResponse;
 
-                // 공인인증서 유효성 확인
+                // 공동인증서 유효성 확인
                 function CheckCertValidation(CorpNum : String; UserID : String = '') : TResponse;
 
                 // 알림메일 전송목록 조회
