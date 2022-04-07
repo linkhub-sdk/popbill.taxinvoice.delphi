@@ -5,10 +5,10 @@
 * to accomplish authentication APIs.
 *
 * http://www.popbill.com
-* Author : Kim Seongjun (pallet027@gmail.com)
+* Author : Kim Seongjun
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhubcorp.com)
-* Updated : 2021-06-15
+* Updated : 2022-04-07
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -255,6 +255,25 @@ type
 
         TEmailConfigList = Array of TEmailConfig;
 
+        TTaxinvoiceXML = class
+        public
+                code            : Integer;
+                message         : String;
+                retObject       : String;
+        end;
+
+        TTaxinvoiceCertificate = class
+        public
+                regDT : String;
+                expireDT : String;
+                issuerDN : String;
+                subjectDN : String;
+                issuerName : String;
+                oid : String;
+                regContactName : String;
+                regContactID : String;
+        end;
+
         TTaxinvoiceService = class(TPopbillBaseService)
         private
                 
@@ -375,6 +394,9 @@ type
                 //세금계산서 상세정보 확인
                 function GetDetailInfo(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoice;
 
+                //세금계산서 상세정보 확인 - XML
+                function GetXML(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string; UserID : String = '') : TTaxinvoiceXML;
+
                 //세금계산서 요약정보 및 상태 다량 확인.
                 function GetInfos(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKeyList: Array Of String) : TTaxinvoiceInfoList;
 
@@ -440,6 +462,9 @@ type
 
                 // 공동인증서 유효성 확인
                 function CheckCertValidation(CorpNum : String; UserID : String = '') : TResponse;
+
+                // 공동인증서 정보 확인
+                function GetTaxCertInfo(CorpNum : String; UserID : String = '') : TTaxinvoiceCertificate;
 
                 // 알림메일 전송목록 조회
                 function ListEmailConfig(CorpNum : String; UserID : String = '') : TEmailConfigList;
@@ -2393,6 +2418,78 @@ begin
         end;
 end;
 
+function TTaxinvoiceService.GetXML (CorpNum : String; MgtKeyType:EnumMgtKeyType; MgtKey: String; UserID : String ) : TTaxinvoiceXML;
+var
+        responseJson : String;
+begin
+        if MgtKey = '' then
+        begin
+                if FIsThrowException then
+                begin
+                        raise EPopbillException.Create(-99999999,'문서번호가 입력되지 않았습니다.');
+                        Exit;
+                end
+                else
+                begin
+                        result := TTaxinvoiceXML.Create();
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('문서번호가 입력되지 않았습니다.');
+                        Exit;
+                end;
+
+        end;
+
+        try
+                responseJson := httpget('/Taxinvoice/'+ GetEnumName(TypeInfo(EnumMgtKeyType),integer(MgtKeyType)) + '/'+MgtKey + '?XML' , CorpNum, UserID);
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.message);
+                                exit;
+                        end
+                        else
+                        begin
+                                result := TTaxinvoiceXML.Create;
+                                setLastErrCode(le.code);
+                                setLastErrMessage(le.message);
+                                exit;
+                        end;
+                end;
+        end;
+
+        if LastErrCode <> 0 then
+        begin
+                exit;
+        end
+        else
+        begin        
+                try
+                        result := TTaxinvoiceXML.Create;
+                        result.code := getJSonInteger(responseJson, 'code');
+                        result.message := getJSonString(responseJson, 'message');
+                        result.retObject := getJSonString(responseJson, 'retObject');
+                except
+                        on E:Exception do begin
+                                if FIsThrowException then
+                                begin
+                                        raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                        exit;
+                                end
+                                else
+                                begin
+                                        result := TTaxinvoiceXML.Create;
+                                        setLastErrCode(-99999999);
+                                        setLastErrMessage('결과처리 실패.[Malformed Json]');
+                                        exit;
+                                end;
+                        end;
+                end;
+        end;
+
+end;
+
+
 function TTaxinvoiceService.getLogs(CorpNum : string; MgtKeyType:EnumMgtKeyType; MgtKey: string) : TTaxinvoiceLogList;
 var
         responseJson : string;
@@ -3387,6 +3484,52 @@ begin
         begin
                 result.code := getJSonInteger(responseJson,'code');
                 result.message := getJSonString(responseJson,'message');
+        end;
+end;
+
+function TTaxinvoiceService.GetTaxCertInfo(CorpNum, UserID: String) : TTaxinvoiceCertificate;
+var
+        responseJson : String;
+begin
+        
+        try
+                responseJson := httpget('/Taxinvoice/Certificate',CorpNum,UserID);
+
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                                exit;
+                        end;
+                end;
+        end;
+
+        try
+                result := TTaxinvoiceCertificate.Create;
+
+                result.regDT := getJSonString(responseJson, 'regDT');
+                result.expireDT := getJSonString(responseJson, 'expireDT');
+                result.issuerDN := getJSonString(responseJson, 'issuerDN');
+                result.subjectDN := getJSonString(responseJson, 'subjectDN');
+                result.issuerName := getJSonString(responseJson, 'issuerName');
+                result.oid := getJSonString(responseJson, 'oid');
+                result.regContactName := getJSonString(responseJson, 'regContactName');
+                result.regContactID := getJSonString(responseJson, 'regContactID');
+
+        except on E:Exception do
+                if FIsThrowException then
+                begin
+                        raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                        exit;
+                end
+                else
+                begin
+                        result := TTaxinvoiceCertificate.Create;
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('결과처리 실패.[Malformed Json]');
+                        exit;
+                end;
         end;
 end;
 
