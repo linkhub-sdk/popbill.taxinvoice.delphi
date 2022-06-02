@@ -8,7 +8,7 @@
 * Author : Kim Seongjun
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhubcorp.com)
-* Updated : 2022-04-07
+* Updated : 2022-06-02
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -29,7 +29,40 @@ type
                 message : string;
                 ntsConfirmNum : string;
         end;
-                
+
+        TBulkResponse = Record
+                code : LongInt;
+                message : string;
+                receiptID : string;
+        end;
+
+        TBulkTaxinvoiceIssueResult = class
+                invoicerMgtKey : string;
+                trusteeMgtKey : string;
+                code : LongInt;
+                ntsconfirmNum : string;
+                issueDT : string;
+        end;
+
+        TBulkTaxinvoiceIssueResultList = Array of  TBulkTaxinvoiceIssueResult;
+
+        TBulkTaxinvoiceResult = class
+                code : LongInt;
+                message : string;
+                submitID : string;
+                submitCount : Integer;
+                successCount : Integer;
+                failCount : Integer;
+                txState : Integer;
+                txResultCode : Integer;
+                txStartDT : string;
+                txEndDT : string;
+                receiptDT : string;
+                receiptID : string;
+                issueResult : TBulkTaxinvoiceIssueResultList;
+        end;
+
+
         TTaxinvoiceChargeInfo = class
         public
                 unitCost : string;
@@ -280,6 +313,8 @@ type
                 function jsonToTTaxinvoiceInfo(json : String) : TTaxinvoiceInfo;
                 function jsonToTTaxinvoice(json : String) : TTaxinvoice;
                 function TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : String; emailSubject : String; dealInvoiceMgtKey : String) : String;
+                function TTaxinvoiceListTojson(TaxinvoiceList : Array of TTaxinvoice; forceIssue : boolean) : String;
+                function jsonToTBulkTaxinvoiceResult(json : String) : TBulkTaxinvoiceResult;
         public
                 constructor Create(LinkID : String; SecretKey : String);
 
@@ -300,6 +335,12 @@ type
 
                 //즉시발행
                 function RegistIssue(CorpNum : String; Taxinvoice : TTaxinvoice; writeSpecification : boolean = false; forceIssue : boolean = false; memo : String = ''; emailSubject : String = ''; dealInvoiceMgtKey : String = ''; UserID : String = '') : TIssueResponse;
+
+                //초대량발행 접수
+                function BulkSubmit(CorpNum : String; SubmitID : String; TaxinvoiceList : Array Of TTaxinvoice; forceIssue : boolean = false; UserID : String = '') : TBulkResponse;
+
+                // 초대량발행 접수결과 확인
+                function GetBulkResult(CorpNum : String; SubmitID : String; UserID : String = '') : TBulkTaxinvoiceResult;                
 
                 //임시저장.
                 function Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
@@ -725,6 +766,27 @@ function UrlEncodeUTF8(stInput : widestring) : string;
    result := (stEncoded);
  end;
 
+function TTaxinvoiceService.TTaxinvoiceListTojson(TaxinvoiceList : Array of TTaxinvoice; forceIssue : boolean) : String;
+var
+        requestJson : string;
+        i : integer;
+begin
+        requestJson := '{';
+        if forceIssue then
+                requestJson := requestJson + '"forceIssue":true,';
+
+        requestJson := requestJson + '"invoices":[';
+        for i := 0 to Length(TaxinvoiceList)-1 do
+        begin
+               requestJson := requestJson + TTaxinvoiceTojson(TaxinvoiceList[i],false,false,'','','');
+               if i < Length(TaxinvoiceList) - 1 then
+                        requestJson := requestJson + ',';
+        end;
+        requestJson := requestJson + ']';
+        requestJson := requestJson + '}';
+        result := requestJson;
+end;
+
 function TTaxinvoiceService.TTaxinvoiceTojson(Taxinvoice : TTaxinvoice; writeSpecification : boolean; forceIssue : boolean; memo : string; emailSubject : String; dealInvoiceMgtKey: STring) : String;
 var
         requestJson : string;
@@ -925,6 +987,129 @@ begin
                 result.ntsConfirmNum := getJSonString(responseJson,'ntsConfirmNum');                
         end;
 
+end;
+
+function TTaxinvoiceService.BulkSubmit(CorpNum : String; SubmitID : String; TaxinvoiceList : Array Of TTaxinvoice; forceIssue : boolean = false; UserID : String = '') : TBulkResponse;
+var
+        requestJson : string;
+        responseJson : string;
+begin
+        try
+
+                requestJson := TTaxinvoiceListTojson(TaxinvoiceList, forceIssue);
+                responseJson := httpbulkpost('/Taxinvoice',CorpNum,UserID,SubmitID,RequestJson,'BULKISSUE');
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                                exit;
+                        end
+                        else
+                        begin
+                                result.code := le.code;
+                                result.Message := le.Message;
+                        end;
+                end;
+        end;
+
+        if LastErrCode <> 0 then
+        begin
+                result.code := LastErrCode;
+                result.message := LastErrMessage;
+        end
+        else
+        begin
+                result.code := getJSonInteger(responseJson,'code');
+                result.message := getJSonString(responseJson,'message');
+                result.receiptID := getJSonString(responseJson,'receiptID');
+        end; 
+end;
+
+function TTaxinvoiceService.jsonToTBulkTaxinvoiceResult(json : String) : TBulkTaxinvoiceResult;
+var
+        jsons : ArrayOfString;
+        i : Integer;
+begin
+        try
+                result := TBulkTaxinvoiceResult.Create;
+                result.code := getJSonInteger(json,'code');
+                result.message := getJSonString(json,'message');
+                result.submitID := getJSonString(json,'submitID');
+                result.submitCount := getJSonInteger(json,'submitCount');
+                result.successCount := getJSonInteger(json,'successCount');
+                result.failCount := getJSonInteger(json,'failCount');
+                result.txState := getJSonInteger(json,'txState');
+                result.txResultCode := getJSonInteger(json,'txResultCode');
+                result.txStartDT := getJSonString(json,'txStartDT');
+                result.txEndDT := getJSonString(json,'txEndDT');
+                result.receiptDT := getJSonString(json,'receiptDT');
+                result.receiptID := getJSonString(json,'receiptID');
+
+                jSons := getJSonList(json, 'issueResult');
+                SetLength(result.issueResult, Length(jSons));
+
+                for i:=0 to Length(jSons)-1 do
+                begin
+                        result.issueResult[i] := TBulkTaxinvoiceIssueResult.Create;
+                        result.issueResult[i].invoicerMgtKey := getJSonString(jSons[i],'invoicerMgtKey');
+                        result.issueResult[i].trusteeMgtKey := getJSonString(jSons[i],'trusteeMgtKey');
+                        result.issueResult[i].code := getJSonInteger(jSons[i],'code');
+                        result.issueResult[i].ntsconfirmNum := getJSonString(jSons[i],'ntsconfirmNum');
+                        result.issueResult[i].issueDT := getJSonString(jSons[i],'issueDT');
+                end;
+        except
+                on E:Exception do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(-99999999,'결과처리 실패.[Malformed Json]');
+                                exit;
+                        end
+                        else
+                        begin
+                                result := TBulkTaxinvoiceResult.Create;
+                                result.code := -99999999;
+                                result.message := '결과처리 실패.[Malformed Json]';
+                                exit;
+                        end;
+                end;
+        end;
+end;
+
+function TTaxinvoiceService.GetBulkResult(CorpNum : String; SubmitID : String; UserID : String = '') : TBulkTaxinvoiceResult;
+var
+        responseJson : string;
+begin
+        if SubmitID = '' then
+        begin
+                if FIsThrowException then
+                begin
+                        raise EPopbillException.Create(-99999999,'제출아이디가 입력되지 않았습니다.');
+                        Exit;
+                end
+                else
+                begin
+                        result := TBulkTaxinvoiceResult.Create;
+                        setLastErrCode(-99999999);
+                        setLastErrMessage('제출아이디가 입력되지 않았습니다.');
+                        Exit;
+                end;
+        end;
+
+        try
+                responseJson := httpget('/Taxinvoice/BULK/'+ SubmitID + '/State' , CorpNum, UserID);
+                result := jsonToTBulkTaxinvoiceResult(responseJson);
+        except
+                on le : EPopbillException do begin
+                        if FIsThrowException then
+                        begin
+                                raise EPopbillException.Create(le.code,le.Message);
+                                exit;
+                        end;
+                        result := TBulkTaxinvoiceResult.Create;
+                        exit;
+                end; 
+        end;
 end;
 
 function TTaxinvoiceService.Register(CorpNum : String; Taxinvoice : TTaxinvoice; UserID : String = ''; writeSpecification : boolean = false) : TResponse;
