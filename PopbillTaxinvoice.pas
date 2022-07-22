@@ -8,7 +8,7 @@
 * Author : Kim Seongjun
 * Written : 2015-06-10
 * Contributor : Jeong Yohan (code@linkhubcorp.com)
-* Updated : 2022-06-02
+* Updated : 2022-07-22
 * Thanks for your interest.
 *=================================================================================
 *)
@@ -40,6 +40,7 @@ type
                 invoicerMgtKey : string;
                 trusteeMgtKey : string;
                 code : LongInt;
+                message : string;
                 ntsconfirmNum : string;
                 issueDT : string;
         end;
@@ -1055,6 +1056,7 @@ begin
                         result.issueResult[i].invoicerMgtKey := getJSonString(jSons[i],'invoicerMgtKey');
                         result.issueResult[i].trusteeMgtKey := getJSonString(jSons[i],'trusteeMgtKey');
                         result.issueResult[i].code := getJSonInteger(jSons[i],'code');
+                        result.issueResult[i].message := getJSonString(jSons[i],'message');
                         result.issueResult[i].ntsconfirmNum := getJSonString(jSons[i],'ntsconfirmNum');
                         result.issueResult[i].issueDT := getJSonString(jSons[i],'issueDT');
                 end;
